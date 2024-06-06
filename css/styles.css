@@ -1,0 +1,169 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #e7f5e6;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 50px;
+    padding-bottom: 50px;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    width: 85%;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.score, .coins {
+    background-color: #a6e4a6;
+    padding: 10px 20px;
+    border-radius: 20px;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: Arial, sans-serif;
+}
+
+#save-button {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+#exit-button {
+    background-color: #f44336; /* Red */
+    color: white;
+}
+
+.building-options {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    background-color: #a6e4a6;
+    padding-bottom: 0;
+}
+
+#holder {
+    width: 85%;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #a6e4a6;
+}
+
+.building {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-left: 1px solid #05050574;
+    cursor: pointer;
+    flex-grow: 1;
+    position: relative;
+    background-color: #a6e4a6;
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+.building.disabled {
+    opacity: 0.5; /* Greyed-out state */
+    background-color: #d3d3d3; /* Greyed-out background */
+    cursor: not-allowed;
+}
+
+.building.selected {
+    background-color: #78c678; /* Darker shade for selected building */
+}
+
+.building::after {
+    content: "";
+    position: absolute;
+    right: -20px;
+    width: 20px;
+    height: 100%;
+    cursor: pointer;
+}
+
+#special {
+    border-left: none;
+}
+
+.building:last-child {
+    border-right: none;
+}
+
+.building-type {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #000;
+}
+
+hr {
+    border: none; /* Removes the default border */
+    height: 1px; /* Adjust this to make the line thicker or thinner */
+    background-color: black; /* This is the color of the line */
+    width: 95%;
+    margin: 0;
+    padding: 0;
+}
+
+.building-description {
+    display: flex;
+    width: 100%;
+    padding-top: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.description-box {
+    display: none; /* Removed the image box */
+}
+
+.text {
+    padding-top: 5px;
+    margin: 10px;
+    text-align: left;
+    flex: 0 0 100%; /* Take full width */
+}
+
+.platform {
+    display: flex;
+    margin-top: 20px;
+    width: 82%;
+    padding: 20px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+.grid {
+    display: grid;
+    width: 100%;
+    aspect-ratio: 1; /* Ensures the grid maintains a square aspect ratio */
+    grid-template-columns: repeat(20, 1fr); /* Adjusts columns to be equal fractions */
+    grid-template-rows: repeat(20, 1fr); /* Adjusts rows to be equal fractions */
+    gap: 1.5%; /* Sets a percentage-based gap */
+}
+
+.grid div {
+    background-color: #cfcfcf;
+    border: 1px solid #ddd;
+}
