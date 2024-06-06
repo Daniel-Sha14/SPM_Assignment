@@ -1,13 +1,15 @@
 body {
     font-family: 'Montserrat', sans-serif;
-    background-color: #8BDBB0;
+    background-color: rgba(116, 208, 23, 0.2); 
     display: flex;
     justify-content: center;
-    align-items: center;
+    
     height: 100vh;
     margin: 0;
 }
-
+.main-menu{
+    height: 90%;
+}
 .container {
     background-color: #ffffff;
     padding: 30px;
@@ -19,13 +21,17 @@ body {
 
 h1 {
     margin-bottom: 30px;
-    color: darkgoldenrod;
-    font-size: 60px;
+    color: #C2B153;
+    font-size: 180px;
 }
 
 .menu {
     display: flex;
     flex-direction: column;
+    gap: 20px;
+}
+#head{
+    display: flex;
     gap: 20px;
 }
 .menu2 {
@@ -36,19 +42,19 @@ h1 {
 }
 
 .menu-button {
-    padding: 15px 25px;
-    font-size: 18px;
+    padding: 30px 25px;
+    font-size: 25px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    background-color: #74D017;
+    background-color: #8BDBB0;
     color: black;
     transition: background-color 0.3s, transform 0.3s;
-    width:100%;
+    width: 100%;
 }
 
 .menu-button:hover {
-    background-color: darkgreen;
+    background-color: #69d49b;
     transform: scale(1.05);
 }
 
@@ -75,4 +81,55 @@ h1 {
 
 #game-info {
     margin-bottom: 20px;
+}
+
+/* Media query for iPhone XR view */
+@media (max-width: 414px) {
+    body {
+        margin-top: auto;
+        margin-bottom: auto;
+        padding: 20px;
+        
+    }
+
+   #main-menu{
+    height: 90%;
+    margin-top: auto;
+    margin-bottom: auto;
+    align-items: center;
+    justify-content: center;
+    
+   }
+
+   .menu{
+    margin-top: 40px;
+   }
+    h1 {
+        font-size: 70px;
+    }
+
+    #head{
+        display: block;
+        
+    }
+    #title{
+        font-weight: bold;
+        font-size: 110px;
+    }
+
+    #head h1 {
+        margin: 0;
+    }
+    .menu-button {
+        padding: 20px 15px;
+        font-size: 16px;
+    }
+
+    .menu2 {
+        display: flex;
+    flex-direction: column;
+    gap: 20px;
+    }
+
+   
 }

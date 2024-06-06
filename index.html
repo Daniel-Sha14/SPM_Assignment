@@ -8,7 +8,11 @@
 </head>
 <body>
     <div  id="main-menu">
-        <h1>Ngee Ann City</h1>
+        <div id = "head">
+            <h1 id = 'title'>Ngee</h1>
+            <h1> Ann City</h1>
+        </div>
+        
         <div class="menu">
             <button class="menu-button" onclick="startArcadeGame()">Load New Arcade Game</button>
             <button class="menu-button" onclick="startFreePlayGame()">Load New Free Play Game</button>
@@ -21,20 +25,7 @@
         </div>
     </div>
 
-    <div class="container" id="game-board" style="display:none;">
-        <h1 id="game-title"></h1>
-        <div id="game-info">
-            <p>Turn: <span id="turn-number">1</span></p>
-            <p>Coins: <span id="coins-left">16</span></p>
-            <p>Score: <span id="current-score">0</span></p>
-        </div>
-        <div id="board"></div>
-        <button class="menu-button" onclick="buildBuilding()">Build a Building</button>
-        <button class="menu-button" onclick="demolishBuilding()">Demolish a Building</button>
-        <button class="menu-button" onclick="saveGame()">Save Game</button>
-        <button class="menu-button" onclick="exitToMainMenu()">Exit to Main Menu</button>
-    </div>
-
+  
     <script src="scripts.js"></script>
 </body>
 </html>
