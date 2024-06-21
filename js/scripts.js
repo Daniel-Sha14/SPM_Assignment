@@ -38,6 +38,7 @@ let selectedBuildings = [];
 let points = 0;
 let coins = 16;
 let firstBuildingPlaced = false;
+let demolishMode = false;
 
 function updateScoreboard() {
     document.getElementById('score').innerText = points;
@@ -132,6 +133,52 @@ function placeBuilding(square) {
             square.classList.remove('highlight');
         });
     }
+}
+
+// After demolish button is pressed, it enter demolish mode
+function enterDemolishMode() {
+    demolishMode = true;
+    highlightDemolishableBuildings();
+}
+
+// Highlight demolishable buildings
+function highlightDemolishableBuildings() {
+    const gridSquares = document.querySelectorAll('.grid-square');
+    gridSquares.forEach(square => {
+        if (square.classList.contains('built')) {
+            square.classList.add('highlight-demolish');
+            square.addEventListener('click', () => demolishBuilding(square), { once: true });
+        }
+    });
+}
+
+// Demolish a Building
+function demolishBuilding(square) {
+    if (demolishMode && square.classList.contains('built')) {
+        // Remove building
+        square.innerText = '';
+        square.classList.remove('built', 'highlight-demolish');
+        
+        // Refund coin
+        coins += 1;
+        updateScoreboard();
+
+        // Exit demolish mode
+        demolishMode = false;
+        removeDemolishHighlights();
+    }
+}
+
+// Remove highlight from all cells
+function removeDemolishHighlights() {
+    document.querySelectorAll('.grid-square').forEach(square => {
+        square.classList.remove('highlight-demolish');
+    });
+}
+
+function updateScoreboard() {
+    document.getElementById('score').innerText = points;
+    document.getElementById('coins').innerText = coins;
 }
 
 function saveGame() {
