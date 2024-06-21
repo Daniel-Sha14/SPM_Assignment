@@ -5,7 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < 400; i++) {  // 20x20 grid
         const square = document.createElement('div');
         square.classList.add('grid-square');
-        square.addEventListener('click', () => placeBuilding(square));
+        square.addEventListener('click', () => {
+            if (demolishMode) {
+                demolishBuilding(square);
+            } else {
+                placeBuilding(square);
+            }
+        });
         grid.appendChild(square);
     }
 });
@@ -59,6 +65,10 @@ function selectBuilding(buildingType) {
 
     // Update the description
     document.getElementById('description-text').innerText = buildings[buildingType].description;
+
+    // Exit demolish mode when a building is selected
+    demolishMode = false;
+    removeDemolishHighlights();
 }
 
 function getRandomBuildings() {
@@ -103,6 +113,8 @@ function highlightValidCells() {
 
 function buildStructure() {
     if (selectedBuilding) {
+        demolishMode = false; // Exit demolish mode
+        removeDemolishHighlights(); // Clear any demolish highlights when entering build mode
         highlightValidCells();
     } else {
         alert('Please select a building type first.');
@@ -122,22 +134,23 @@ function placeBuilding(square) {
             firstBuildingPlaced = true;
         }
 
-        // Reset selected building
-        selectedBuilding = null;
-        document.querySelectorAll('.building').forEach(building => {
-            building.classList.remove('selected');
-        });
-
         // Remove highlight from all cells
         document.querySelectorAll('.grid-square').forEach(square => {
             square.classList.remove('highlight');
         });
+
+        // Do not exit build mode after placing a building
     }
 }
 
-// After demolish button is pressed, it enter demolish mode
+// Enter demolish mode
 function enterDemolishMode() {
     demolishMode = true;
+    selectedBuilding = null; // Clear selected building when entering demolish mode
+    removeBuildHighlights(); // Clear any build highlights when entering demolish mode
+    document.querySelectorAll('.building').forEach(building => {
+        building.classList.remove('selected');
+    });
     highlightDemolishableBuildings();
 }
 
@@ -145,27 +158,34 @@ function enterDemolishMode() {
 function highlightDemolishableBuildings() {
     const gridSquares = document.querySelectorAll('.grid-square');
     gridSquares.forEach(square => {
-        if (square.classList.contains('built')) {
+        if (square.classList.contains('built') && isOuterLayer(square)) {
             square.classList.add('highlight-demolish');
-            square.addEventListener('click', () => demolishBuilding(square), { once: true });
         }
     });
 }
 
-// Demolish a Building
+// Check if the building is on the outer layer
+function isOuterLayer(square) {
+    const neighbors = getNeighbors(square);
+    return neighbors.some(neighbor => !neighbor.classList.contains('built'));
+}
+
+// Demolish a building
 function demolishBuilding(square) {
-    if (demolishMode && square.classList.contains('built')) {
+    if (coins > 0 && demolishMode && square.classList.contains('built') && isOuterLayer(square)) {
         // Remove building
         square.innerText = '';
         square.classList.remove('built', 'highlight-demolish');
-        
-        // Refund coin
-        coins += 1;
+
+        // Deduct coin
+        coins -= 1;
         updateScoreboard();
 
         // Exit demolish mode
         demolishMode = false;
         removeDemolishHighlights();
+    } else if (coins <= 0) {
+        alert('Not enough coins to demolish a building.');
     }
 }
 
@@ -176,9 +196,10 @@ function removeDemolishHighlights() {
     });
 }
 
-function updateScoreboard() {
-    document.getElementById('score').innerText = points;
-    document.getElementById('coins').innerText = coins;
+function removeBuildHighlights() {
+    document.querySelectorAll('.grid-square').forEach(square => {
+        square.classList.remove('highlight');
+    });
 }
 
 function saveGame() {
