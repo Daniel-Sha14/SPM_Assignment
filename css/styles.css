@@ -65,7 +65,7 @@ button {
     background-color: #a6e4a6;
 }
 
-.building {
+.building, .action-button {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -101,7 +101,7 @@ button {
     border-left: none;
 }
 
-.building:last-child {
+.building:last-child, .action-button:last-child {
     border-right: none;
 }
 
@@ -120,7 +120,7 @@ hr {
     border: none; /* Removes the default border */
     height: 1px; /* Adjust this to make the line thicker or thinner */
     background-color: black; /* This is the color of the line */
-    width: 95%;
+    width: 100%;
     margin: 0;
     padding: 0;
 }
@@ -134,14 +134,14 @@ hr {
 }
 
 .description-box {
-    display: none; /* Removed the image box */
+    display: none; 
 }
 
 .text {
     padding-top: 5px;
     margin: 10px;
     text-align: left;
-    flex: 0 0 100%; /* Take full width */
+    flex: 0 0 100%; 
 }
 
 .platform {
@@ -157,16 +157,60 @@ hr {
 .grid {
     display: grid;
     width: 100%;
-    aspect-ratio: 1; /* Ensures the grid maintains a square aspect ratio */
-    grid-template-columns: repeat(20, 1fr); /* Adjusts columns to be equal fractions */
-    grid-template-rows: repeat(20, 1fr); /* Adjusts rows to be equal fractions */
-    gap: 1.5%; /* Sets a percentage-based gap */
+    aspect-ratio: 1; 
+    grid-template-columns: repeat(20, 1fr); 
+    grid-template-rows: repeat(20, 1fr); 
+    gap: 1.5%; 
 }
 
 
 .grid div {
     background-color: #cfcfcf;
     border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Highlight valid cells for building placement */
+.grid-square.highlight {
+    background-color: yellow;
+    cursor: pointer;
+}
+
+/* Style for cells with buildings placed */
+.grid-square.built {
+    background-color: green;
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+}
+
+.action-button {
+    background-color: #ff7b00;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    text-align: center;
+    cursor: pointer;
+    flex-grow: 0.8;
+    margin-left: 10px;
+}
+
+#demolish-button {
+    background-color: #f44336;
+}
+
+/*To show highlighted buildings that can be demolished*/
+.grid-square.highlight-demolish {
+    background-color: #ff6961;
+    cursor: pointer;
 }
 
 
