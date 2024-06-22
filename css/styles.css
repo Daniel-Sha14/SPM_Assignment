@@ -163,7 +163,51 @@ hr {
     gap: 1.5%; /* Sets a percentage-based gap */
 }
 
+
 .grid div {
     background-color: #cfcfcf;
     border: 1px solid #ddd;
 }
+
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    height: 430px;
+    width: 82%;
+    padding-left: 440px;
+    padding-top: 445px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    background-color: #ffffff;
+    box-sizing: border-box;
+}
+
+#freeplaygrid {
+    display: grid;
+    gap: 25px;
+}
+
+.grid-cell {
+    background-color: lightgray; /* Initial state of cells */
+    cursor: pointer;
+  }
+  
+  .grid-cell.clicked {
+    background-color: #ADD8E6; /* Light blue when clicked */
+  }
+  
+
+
+  
+
+
+
+
+
+
+
+
+
