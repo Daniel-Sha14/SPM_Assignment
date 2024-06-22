@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grid Game</title>
-    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/freePlaystyles.css">
 </head>
 <body>
     <div class="scoreboard">
         <div id="turn">Turn: 1</div>
         <div class="score">Current Score: <span id="score">0</span></div>
-        <div class="coins">Coins Remaining: <span id="coins">16</span></div>
+        <div class="coins">Coins Remaining: <span id="coins">Infinity</span></div>
         <div class="buttons">
             <button id="save-button" onclick="saveGame()">Save</button>
             <button id="exit-button" onclick="exitGame()">Exit Game</button>
@@ -49,6 +49,6 @@
     <div class="platform">
         <div class="grid" id="grid"></div>
     </div>
-    <script src="../js/scripts.js"></script>
+    <script src="../js/freePlayScript.js"></script>
 </body>
 </html>

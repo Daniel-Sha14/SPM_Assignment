@@ -8,6 +8,8 @@ body {
     justify-content: center;
     margin-top: 50px;
     padding-bottom: 50px;
+    
+    overflow-x: scroll;
 }
 
 .scoreboard {
@@ -147,20 +149,23 @@ hr {
 .platform {
     display: flex;
     margin-top: 20px;
-    width: 82%;
+    width: 85%;
     padding: 20px;
-    border: 2px solid #ddd;
+    position: absolute;
+    left: 190px;
+    top: 300px;
+    border: 4px solid #ddd;
+    
     border-radius: 10px;
     background-color: #ffffff;
+    transition: width 0.3s, height 0.3s; /* Smooth transition for expansion */
+    overflow-x: auto;
 }
 
 .grid {
     display: grid;
     width: 100%;
-    aspect-ratio: 1; 
-    grid-template-columns: repeat(20, 1fr); 
-    grid-template-rows: repeat(20, 1fr); 
-    gap: 1.5%; 
+    gap: 2px;
 }
 
 .grid div {
@@ -170,6 +175,7 @@ hr {
     align-items: center;
     justify-content: center;
     font-size: 24px;
+    
     font-weight: bold;
 }
 
@@ -187,7 +193,7 @@ hr {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 50px;
+    font-size: 24px;
 }
 
 .action-button {
@@ -211,4 +217,3 @@ hr {
     background-color: #ff6961;
     cursor: pointer;
 }
-
