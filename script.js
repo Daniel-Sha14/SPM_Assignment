@@ -5,7 +5,7 @@ document.getElementById("new-arcade-game").addEventListener("click", () => {
 });
 
 document.getElementById("new-free-play-game").addEventListener("click", () => {
-    alert("New Free Play Game placeholder");
+    window.location.href = "html/freeplay-game.html";
 });
 
 document.getElementById("load-saved-game").addEventListener("click", () => {
