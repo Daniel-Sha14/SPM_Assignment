@@ -191,18 +191,7 @@ function highlightValidCells() {
 }
 
 function isValidPlacement(row, col) {
-    if (buildingsGrid[row][col]) {
-        return false; // Already occupied
-    }
-
-    // For the first building, allow placement anywhere
-    if (!firstBuildingPlaced) {
-        return true;
-    }
-
-    // Check if there is any adjacent built cell
-    const neighbors = getNeighbors(row, col);
-    return neighbors.some(neighbor => neighbor && buildingsGrid[neighbor.row][neighbor.col]);
+    return !buildingsGrid[row][col]; // Valid placement if the cell is not occupied
 }
 
 function buildStructure() {
@@ -272,6 +261,61 @@ function endTurn() {
     turnNumber += 1;
     updateTurnCounter();
     removeBuildHighlights(); // Remove highlights at the end of each turn
+    updatePoints(); // Calculate points at the end of each turn
+}
+
+function updatePoints() {
+    points = 0;
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (buildingsGrid[row][col]) {
+                points += calculatePoints(row, col);
+            }
+        }
+    }
+    updateScoreboard();
+}
+
+function calculatePoints(row, col) {
+    const buildingType = buildingsGrid[row][col];
+    const neighbors = getNeighbors(row, col);
+    let buildingPoints = 0;
+
+    if (buildingType === 'residential') {
+        if (neighbors.some(neighbor => buildingsGrid[neighbor.row][neighbor.col] === 'industry')) {
+            buildingPoints = 1;
+        } else {
+            neighbors.forEach(neighbor => {
+                const neighborType = buildingsGrid[neighbor.row][neighbor.col];
+                if (neighborType === 'residential' || neighborType === 'commercial') {
+                    buildingPoints += 1;
+                } else if (neighborType === 'park') {
+                    buildingPoints += 2;
+                }
+            });
+        }
+    } else if (buildingType === 'industry') {
+        buildingPoints = document.querySelectorAll('.grid-square').length; // 1 point per industry in the city
+    } else if (buildingType === 'commercial') {
+        neighbors.forEach(neighbor => {
+            if (buildingsGrid[neighbor.row][neighbor.col] === 'commercial') {
+                buildingPoints += 1;
+            }
+        });
+    } else if (buildingType === 'park') {
+        neighbors.forEach(neighbor => {
+            if (buildingsGrid[neighbor.row][neighbor.col] === 'park') {
+                buildingPoints += 1;
+            }
+        });
+    } else if (buildingType === 'road') {
+        const rowSize = Math.sqrt(document.querySelectorAll('.grid-square').length);
+        const rowIndex = row;
+        const rowSquares = Array.from(document.querySelectorAll('.grid-square')).slice(rowIndex * rowSize, (rowIndex + 1) * rowSize);
+        buildingPoints += rowSquares.filter(s => s.innerText === '*').length;
+    }
+
+    return buildingPoints;
 }
 
 function saveGame() {
