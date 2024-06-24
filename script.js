@@ -1,11 +1,11 @@
 // script.js
 
 document.getElementById("new-arcade-game").addEventListener("click", () => {
-    window.location.href = "html/arcade-game.html"; // Example redirection to Arcade game page
+    window.location.href = "html/arcade-game.html"; 
 });
 
 document.getElementById("new-free-play-game").addEventListener("click", () => {
-    window.location.href = "html/freeplay-game.html";
+    window.location.href = "html/freePlay.html";
 });
 
 document.getElementById("load-saved-game").addEventListener("click", () => {
