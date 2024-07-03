@@ -262,6 +262,7 @@ function endTurn() {
     updateTurnCounter();
     removeBuildHighlights(); // Remove highlights at the end of each turn
     updatePoints(); // Calculate points at the end of each turn
+    updateProfitAndUpkeep(); // Calculate profit and upkeep at the end of each turn
 }
 
 function updatePoints() {
@@ -278,44 +279,182 @@ function updatePoints() {
 
 function calculatePoints(row, col) {
     const buildingType = buildingsGrid[row][col];
-    const neighbors = getNeighbors(row, col);
+    const adjacent = getAdjacentBuildings(row, col);
     let buildingPoints = 0;
 
-    if (buildingType === 'residential') {
-        if (neighbors.some(neighbor => buildingsGrid[neighbor.row][neighbor.col] === 'industry')) {
-            buildingPoints = 1;
-        } else {
-            neighbors.forEach(neighbor => {
-                const neighborType = buildingsGrid[neighbor.row][neighbor.col];
-                if (neighborType === 'residential' || neighborType === 'commercial') {
-                    buildingPoints += 1;
-                } else if (neighborType === 'park') {
-                    buildingPoints += 2;
-                }
-            });
-        }
-    } else if (buildingType === 'industry') {
-        buildingPoints = document.querySelectorAll('.grid-square').length; // 1 point per industry in the city
-    } else if (buildingType === 'commercial') {
-        neighbors.forEach(neighbor => {
-            if (buildingsGrid[neighbor.row][neighbor.col] === 'commercial') {
-                buildingPoints += 1;
+    switch (buildingType) {
+        case 'residential':
+            if (adjacent.includes('industry')) {
+                buildingPoints = 1;
+            } else {
+                buildingPoints = adjacent.filter(b => b === 'residential' || b === 'commercial').length +
+                                 2 * adjacent.filter(b => b === 'park').length;
             }
-        });
-    } else if (buildingType === 'park') {
-        neighbors.forEach(neighbor => {
-            if (buildingsGrid[neighbor.row][neighbor.col] === 'park') {
-                buildingPoints += 1;
-            }
-        });
-    } else if (buildingType === 'road') {
-        const rowSize = Math.sqrt(document.querySelectorAll('.grid-square').length);
-        const rowIndex = row;
-        const rowSquares = Array.from(document.querySelectorAll('.grid-square')).slice(rowIndex * rowSize, (rowIndex + 1) * rowSize);
-        buildingPoints += rowSquares.filter(s => s.innerText === '*').length;
+            break;
+        case 'industry':
+            buildingPoints = buildingsGrid.flat().filter(b => b === 'industry').length;
+            break;
+        case 'commercial':
+            buildingPoints = adjacent.filter(b => b === 'commercial').length;
+            break;
+        case 'park':
+            buildingPoints = adjacent.filter(b => b === 'park').length;
+            break;
+        case 'road':
+            buildingPoints = calculateRoadPoints(row, col);
+            break;
     }
 
     return buildingPoints;
+}
+function calculateRoadPoints(row, col) {
+    let connectedRoads = new Set();
+    let stack = [[row, col]];
+
+    while (stack.length > 0) {
+        let [currentRow, currentCol] = stack.pop();
+        let key = `${currentRow},${currentCol}`;
+
+        if (connectedRoads.has(key)) continue;
+        connectedRoads.add(key);
+
+        // Check all four directions
+        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+        for (const [dr, dc] of directions) {
+            let newRow = currentRow + dr;
+            let newCol = currentCol + dc;
+
+            if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+                if (buildingsGrid[newRow][newCol] === 'road') {
+                    stack.push([newRow, newCol]);
+                }
+            }
+        }
+    }
+
+    // If there's only one road, return 0 points
+    if (connectedRoads.size === 1) {
+        return 0;
+    }
+
+    // Calculate the score: length * length
+    const length = connectedRoads.size;
+    return length;
+}
+function updateProfitAndUpkeep() {
+    let profit = 0;
+    let upkeep = 0;
+    const visitedResidential = new Set();
+
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            const buildingType = buildingsGrid[row][col];
+            if (buildingType) {
+                switch (buildingType) {
+                    case 'residential':
+                        profit += 1;
+                        if (!visitedResidential.has(`${row},${col}`)) {
+                            upkeep += calculateResidentialClusterUpkeep(row, col, visitedResidential);
+                        }
+                        break;
+                    case 'industry':
+                        profit += 2 + calculateIndustryProfit(row, col);
+                        upkeep += 1;
+                        break;
+                    case 'commercial':
+                        profit += 3 + calculateCommercialProfit(row, col);
+                        upkeep += 2;
+                        break;
+                    case 'park':
+                        upkeep += 1;
+                        break;
+                    case 'road':
+                        if (!isConnectedRoad(row, col)) {
+                            upkeep += 1;
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    coins += profit - upkeep;
+    updateScoreboard();
+}
+
+function calculateResidentialClusterUpkeep(row, col, visited) {
+    const stack = [[row, col]];
+    let clusterSize = 0;
+
+    while (stack.length > 0) {
+        const [r, c] = stack.pop();
+        const key = `${r},${c}`;
+
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        if (buildingsGrid[r][c] === 'residential') {
+            clusterSize++;
+            for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+                const newRow = r + dr;
+                const newCol = c + dc;
+                if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+                    stack.push([newRow, newCol]);
+                }
+            }
+        }
+    }
+
+    return clusterSize > 0 ? 1 : 0;
+}
+
+function calculateIndustryProfit(row, col) {
+    return getAdjacentBuildings(row, col).filter(b => b === 'residential').length;
+}
+
+function calculateCommercialProfit(row, col) {
+    return getAdjacentBuildings(row, col).filter(b => b === 'residential').length;
+}
+
+function isConnectedRoad(row, col) {
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (const [dr, dc] of directions) {
+        const newRow = row + dr;
+        const newCol = col + dc;
+        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+            const neighborBuilding = buildingsGrid[newRow][newCol];
+            if (neighborBuilding && neighborBuilding !== 'road') {
+                return true;
+            }
+        }
+    }return false;
+}
+
+function getAdjacentBuildings(row, col) {
+    const adjacent = [];
+    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+
+    for (const [dr, dc] of directions) {
+        let newRow = row + dr;
+        let newCol = col + dc;
+
+        // Follow the road
+        while (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+            const building = buildingsGrid[newRow][newCol];
+
+            if (building === 'road') {
+                newRow += dr;
+                newCol += dc;
+            } else if (building) {
+                adjacent.push(building);
+                break;
+            } else {
+                break;
+            }
+        }
+    }
+
+    return adjacent;
 }
 
 function saveGame() {
