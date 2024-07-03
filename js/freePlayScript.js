@@ -308,38 +308,28 @@ function calculatePoints(row, col) {
     return buildingPoints;
 }
 function calculateRoadPoints(row, col) {
-    let connectedRoads = new Set();
-    let stack = [[row, col]];
-
-    while (stack.length > 0) {
-        let [currentRow, currentCol] = stack.pop();
-        let key = `${currentRow},${currentCol}`;
-
-        if (connectedRoads.has(key)) continue;
-        connectedRoads.add(key);
-
-        // Check all four directions
-        const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-        for (const [dr, dc] of directions) {
-            let newRow = currentRow + dr;
-            let newCol = currentCol + dc;
-
-            if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
-                if (buildingsGrid[newRow][newCol] === 'road') {
-                    stack.push([newRow, newCol]);
-                }
-            }
+    let connectedRoads = 1; // Start with 1 for the current road
+    
+    // Check horizontally to the left
+    for (let c = col - 1; c >= 0; c--) {
+        if (buildingsGrid[row][c] === 'road') {
+            connectedRoads++;
+        } else {
+            break;
+        }
+    }
+    
+    // Check horizontally to the right
+    for (let c = col + 1; c < gridSize; c++) {
+        if (buildingsGrid[row][c] === 'road') {
+            connectedRoads++;
+        } else {
+            break;
         }
     }
 
     // If there's only one road, return 0 points
-    if (connectedRoads.size === 1) {
-        return 0;
-    }
-
-    // Calculate the score: length * length
-    const length = connectedRoads.size;
-    return length;
+    return connectedRoads > 1 ? connectedRoads : 0;
 }
 function updateProfitAndUpkeep() {
     let profit = 0;
@@ -416,20 +406,28 @@ function calculateCommercialProfit(row, col) {
     return getAdjacentBuildings(row, col).filter(b => b === 'residential').length;
 }
 
+
 function isConnectedRoad(row, col) {
     const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
     for (const [dr, dc] of directions) {
-        const newRow = row + dr;
-        const newCol = col + dc;
-        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+        let newRow = row + dr;
+        let newCol = col + dc;
+        
+        // Follow the road
+        while (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
             const neighborBuilding = buildingsGrid[newRow][newCol];
-            if (neighborBuilding && neighborBuilding !== 'road') {
+            if (neighborBuilding === 'road') {
+                newRow += dr;
+                newCol += dc;
+            } else if (neighborBuilding && neighborBuilding !== 'road') {
                 return true;
+            } else {
+                break;
             }
         }
-    }return false;
+    }
+    return false;
 }
-
 function getAdjacentBuildings(row, col) {
     const adjacent = [];
     const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
@@ -456,7 +454,6 @@ function getAdjacentBuildings(row, col) {
 
     return adjacent;
 }
-
 function saveGame() {
     alert("Game saved!");
 }
