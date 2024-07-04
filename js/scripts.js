@@ -58,6 +58,10 @@ let coins = 16;
 let turnNumber = 1;
 let firstBuildingPlaced = false;
 let demolishMode = false;
+let gridSize = 20; // Define grid size
+let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null)); // Define buildingsGrid
+const allBuildings = Object.keys(buildings);
+let availableBuildings = [...allBuildings];
 
 function updateScoreboard() {
     document.getElementById('score').innerText = points;
@@ -89,17 +93,44 @@ function selectBuilding(buildingType) {
 }
 
 function getRandomBuilding(exclude) {
-    const buildingKeys = Object.keys(buildings).filter(key => key !== exclude && !selectedBuildings.includes(key));
+    const buildingKeys = availableBuildings.filter(key => key !== exclude && !selectedBuildings.includes(key));
     const randomIndex = Math.floor(Math.random() * buildingKeys.length);
     return buildingKeys[randomIndex];
 }
 
 function initializeGame() {
     updateTurnCounter();
-    selectedBuildings = [getRandomBuilding(null), getRandomBuilding(null)];
+    selectedBuildings = getNewBuildings([]);
     updateSelectedBuildingsUI();
     updateScoreboard();
 }
+
+function getNewBuildings(exclude) {
+    // Add the previously excluded buildings back to the available pool
+    availableBuildings = [...new Set([...availableBuildings, ...exclude])];
+
+    // Filter out the current selected buildings from the pool
+    let remainingBuildings = availableBuildings.filter(building => !selectedBuildings.includes(building));
+    const newBuildings = [];
+
+    while (newBuildings.length < 2 && remainingBuildings.length > 0) {
+        const randomBuilding = remainingBuildings[Math.floor(Math.random() * remainingBuildings.length)];
+        if (!newBuildings.includes(randomBuilding)) {
+            newBuildings.push(randomBuilding);
+        }
+        remainingBuildings = remainingBuildings.filter(building => building !== randomBuilding);
+    }
+
+    // Update available buildings to exclude the newly selected ones
+    availableBuildings = availableBuildings.filter(building => !newBuildings.includes(building));
+
+    // Debugging logs to verify the selection process
+    console.log("New buildings selected:", newBuildings);
+    console.log("Available buildings after selection:", availableBuildings);
+
+    return newBuildings;
+}
+
 
 function updateSelectedBuildingsUI() {
     document.querySelectorAll('.building').forEach(building => {
@@ -112,7 +143,9 @@ function updateSelectedBuildingsUI() {
     });
 
     // Automatically select the first available building
-    selectBuilding(selectedBuildings[0]);
+    if (selectedBuildings.length > 0) {
+        selectBuilding(selectedBuildings[0]);
+    }
 }
 
 function highlightValidCells() {
@@ -121,8 +154,11 @@ function highlightValidCells() {
     gridSquares.forEach(square => {
         square.classList.remove('highlight');
         if (firstBuildingPlaced) {
-            const neighbors = getNeighbors(square);
-            if (neighbors.some(neighbor => neighbor.classList.contains('built'))) {
+            const index = Array.from(gridSquares).indexOf(square);
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            const neighbors = checkSurroundings(row, col);
+            if (neighbors.some(neighbor => neighbor.type)) {
                 square.classList.add('highlight');
             }
         } else {
@@ -143,9 +179,15 @@ function buildStructure() {
 
 function placeBuilding(square) {
     if (square.classList.contains('highlight') && coins > 0) {
+        const index = Array.from(document.querySelectorAll('.grid-square')).indexOf(square);
+        const row = Math.floor(index / gridSize);
+        const col = index % gridSize;
+
         square.innerText = buildings[selectedBuilding].icon;
         square.classList.add('built');
         square.classList.remove('highlight');
+
+        buildingsGrid[row][col] = selectedBuilding;
 
         coins -= 1;
         updateScoreboard();
@@ -158,14 +200,6 @@ function placeBuilding(square) {
         document.querySelectorAll('.grid-square').forEach(square => {
             square.classList.remove('highlight');
         });
-
-        // Update selected buildings for next turn
-        const remainingBuilding = selectedBuildings.find(b => b !== selectedBuilding);
-        const newBuilding = getRandomBuilding(remainingBuilding);
-        selectedBuildings = [selectedBuilding, newBuilding];
-
-        // Update the UI for new buildings
-        updateSelectedBuildingsUI();
 
         // End turn and update coins, points, and turn counter
         endTurn();
@@ -187,24 +221,23 @@ function enterDemolishMode() {
 function highlightDemolishableBuildings() {
     const gridSquares = document.querySelectorAll('.grid-square');
     gridSquares.forEach(square => {
-        if (square.classList.contains('built') && isOuterLayer(square)) {
+        if (square.classList.contains('built')) {
             square.classList.add('highlight-demolish');
         }
     });
 }
 
-// Check if the building is on the outer layer
-function isOuterLayer(square) {
-    const neighbors = getNeighbors(square);
-    return neighbors.some(neighbor => !neighbor.classList.contains('built'));
-}
-
 // Demolish a building
 function demolishBuilding(square) {
-    if (coins > 0 && demolishMode && square.classList.contains('built') && isOuterLayer(square)) {
+    if (coins > 0 && demolishMode && square.classList.contains('built')) {
+        const index = Array.from(document.querySelectorAll('.grid-square')).indexOf(square);
+        const row = Math.floor(index / gridSize);
+        const col = index % gridSize;
+
         // Remove building
         square.innerText = '';
         square.classList.remove('built', 'highlight-demolish');
+        buildingsGrid[row][col] = null;
 
         // Deduct coin
         coins -= 1;
@@ -234,70 +267,157 @@ function removeBuildHighlights() {
     });
 }
 
+function updateProfitAndUpkeep() {
+    let totalUpkeep = 0;
+    let totalProfit = 0;
+    const gridSquares = document.querySelectorAll('.grid-square');
+    const residentialClusters = new Set();
+
+    // Loop through each cell in the grid
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            const index = row * gridSize + col;
+            const square = gridSquares[index];
+            if (square.classList.contains('built')) {
+                const buildingType = buildingsGrid[row][col];
+                if (buildingType) {
+                    const { upkeep, profit } = buildings[buildingType];
+
+                    totalUpkeep += upkeep;
+                    totalProfit += profit;
+
+                    // Additional profit from residential buildings connected by roads
+                    if (buildingType === 'industry' || buildingType === 'commercial') {
+                        const collectedResidentials = [];
+                        followRoadAndCollectResidentials(row, col, collectedResidentials);
+                        totalProfit += collectedResidentials.length;
+                    }
+
+                    // Collect clusters of residential buildings
+                    if (buildingType === 'residential') {
+                        const cluster = new Set();
+                        collectResidentialCluster(row, col, cluster);
+                        cluster.forEach(loc => residentialClusters.add(`${loc.row},${loc.col}`));
+                    }
+
+                    // Handle road-specific logic
+                    if (buildingType === 'road') {
+                        const roadCount = countConnectedRoads(row, col);
+                        if (roadCount > 1) {
+                            totalUpkeep -= upkeep; // Remove upkeep if road is connected
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Remove additional upkeep for clustered residential buildings
+    residentialClusters.forEach(loc => {
+        const [row, col] = loc.split(',').map(Number);
+        totalUpkeep -= buildings['residential'].upkeep;
+    });
+
+    // Update coins with the net profit after upkeep
+    coins += (totalProfit - totalUpkeep);
+    updateScoreboard();
+}
+
+/**
+ * Collects all adjacent residential buildings starting from a given cell (row, col) and adds them to the cluster.
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @param {Set} cluster - A set to store the collected residential buildings.
+ */
+function collectResidentialCluster(startRow, startCol, cluster) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+        cluster.add({ row, col });
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'residential' && !visited.has(`${s.row},${s.col}`)) {
+                queue.push(s);
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
+    }
+}
+
+/**
+ * Follows roads starting from a given cell (row, col) and collects all connected residential buildings.
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @param {Array} collectedResidentials - An array to store the collected residential buildings.
+ */
+function followRoadAndCollectResidentials(startRow, startCol, collectedResidentials) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'residential' && !visited.has(`${s.row},${s.col}`)) {
+                collectedResidentials.push(s);
+                visited.add(`${s.row},${s.col}`);
+            } else if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+                queue.push(s);
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
+    }
+}
+
+/**
+ * Counts all connected road cells starting from a given cell (row, col).
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @returns {number} The count of all connected road cells.
+ */
+function countConnectedRoads(startRow, startCol) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+    let roadCount = 0;
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+        roadCount++;
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+                queue.push(s);
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
+    }
+
+    return roadCount;
+}
 function endTurn() {
-    updateProfitAndUpkeep();
     updatePoints();
     turnNumber += 1;
     updateTurnCounter();
+
+    updateProfitAndUpkeep(); // Update profit and upkeep at the end of each turn
+
+    // Refresh the pool of selected buildings, including previously discarded ones
+    const previouslySelectedBuildings = [...selectedBuildings];
+    selectedBuildings = getNewBuildings(previouslySelectedBuildings);
+    updateSelectedBuildingsUI();
 }
 
-function updateProfitAndUpkeep() {
-    let profit = 0;
-    let upkeep = 0;
-    const gridSquares = document.querySelectorAll('.grid-square');
-
-    gridSquares.forEach(square => {
-        if (square.classList.contains('built')) {
-            const buildingType = Object.keys(buildings).find(key => buildings[key].icon === square.innerText);
-            if (buildingType) {
-                profit += buildings[buildingType].profit;
-                upkeep += buildings[buildingType].upkeep;
-
-                if (buildingType === 'industry') {
-                    const neighbors = getNeighbors(square).filter(neighbor => neighbor.innerText === 'R');
-                    profit += neighbors.length; // Each adjacent residential building generates 1 coin
-                } else if (buildingType === 'commercial') {
-                    const neighbors = getNeighbors(square).filter(neighbor => neighbor.innerText === 'R');
-                    profit += neighbors.length; // Each adjacent residential building generates 1 coin
-                }
-            }
-        }
-    });
-
-    const residentialClusters = [];
-    const visited = new Set();
-
-    gridSquares.forEach(square => {
-        if (square.classList.contains('built') && square.innerText === 'R' && !visited.has(square)) {
-            const cluster = [];
-            const stack = [square];
-
-            while (stack.length) {
-                const current = stack.pop();
-                if (!visited.has(current)) {
-                    visited.add(current);
-                    cluster.push(current);
-
-                    const neighbors = getNeighbors(current).filter(neighbor => neighbor.innerText === 'R');
-                    neighbors.forEach(neighbor => {
-                        if (!visited.has(neighbor)) {
-                            stack.push(neighbor);
-                        }
-                    });
-                }
-            }
-
-            residentialClusters.push(cluster);
-        }
-    });
-
-    residentialClusters.forEach(cluster => {
-        upkeep += 1; // Each cluster requires 1 coin per turn to upkeep
-    });
-
-    coins += profit - upkeep;
-    updateScoreboard();
-}
 
 function updatePoints() {
     points = 0;
@@ -305,45 +425,192 @@ function updatePoints() {
 
     gridSquares.forEach(square => {
         if (square.classList.contains('built')) {
-            const buildingType = Object.keys(buildings).find(key => buildings[key].icon === square.innerText);
-            const neighbors = getNeighbors(square);
-
-            if (buildingType === 'residential') {
-                if (neighbors.some(neighbor => neighbor.innerText === 'I')) {
-                    points += 1;
-                } else {
-                    neighbors.forEach(neighbor => {
-                        if (neighbor.innerText === 'R' || neighbor.innerText === 'C') {
-                            points += 1;
-                        } else if (neighbor.innerText === 'O') {
-                            points += 2;
-                        }
-                    });
-                }
-            } else if (buildingType === 'industry') {
-                points += document.querySelectorAll('.grid-square.built').length;
-            } else if (buildingType === 'commercial') {
-                neighbors.forEach(neighbor => {
-                    if (neighbor.innerText === 'C') {
-                        points += 1;
-                    }
-                });
-            } else if (buildingType === 'park') {
-                neighbors.forEach(neighbor => {
-                    if (neighbor.innerText === 'O') {
-                        points += 1;
-                    }
-                });
-            } else if (buildingType === 'road') {
-                const rowSize = Math.sqrt(gridSquares.length);
-                const rowIndex = Math.floor(Array.from(gridSquares).indexOf(square) / rowSize);
-                const rowSquares = Array.from(gridSquares).slice(rowIndex * rowSize, (rowIndex + 1) * rowSize);
-                points += rowSquares.filter(s => s.innerText === '*').length;
-            }
+            const index = Array.from(gridSquares).indexOf(square);
+            const row = Math.floor(index / gridSize);
+            const col = index % gridSize;
+            points += calculatePoints(row, col);
         }
     });
 
     updateScoreboard();
+}
+
+/**
+ * Checks the four surrounding cells of a given cell (row, col)
+ * and returns their positions and types.
+ *
+ * @param {number} row - The row index of the cell.
+ * @param {number} col - The column index of the cell.
+ * @returns {Array} An array of objects representing the surrounding cells.
+ */
+function checkSurroundings(row, col) {
+    const directions = [
+        { r: -1, c: 0 }, // up
+        { r: 1, c: 0 }, // down
+        { r: 0, c: -1 }, // left
+        { r: 0, c: 1 } // right
+    ];
+
+    const surroundings = [];
+
+    for (let i = 0; i < directions.length; i++) {
+        const newRow = row + directions[i].r;
+        const newCol = col + directions[i].c;
+        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+            surroundings.push({ row: newRow, col: newCol, type: buildingsGrid[newRow][newCol] });
+        }
+    }
+
+    return surroundings;
+}
+
+/**
+ * Calculates the points for a building at a given cell (row, col) based on its type and surroundings.
+ *
+ * @param {number} row - The row index of the cell.
+ * @param {number} col - The column index of the cell.
+ * @returns {number} The calculated points for the building at the given cell.
+ */
+function calculatePoints(row, col) {
+    const buildingType = buildingsGrid[row][col];
+    if (!buildingType) return 0;
+
+    const surroundings = checkSurroundings(row, col);
+    let points = 0;
+
+    if (buildingType === 'residential') {
+        // Check if there is an adjacent industry
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'industry') {
+                return 1;
+            }
+        }
+        // Check if there is a road nearby
+        let hasRoad = false;
+        for (let i = 0; i < surroundings.length; i++) {
+            if (surroundings[i].type === 'road') {
+                hasRoad = true;
+                break;
+            }
+        }
+        if (!hasRoad) return 0;
+        
+        // Follow roads and collect connected buildings
+        const collectedBuildings = [];
+        followRoadAndCollectBuildings(row, col, collectedBuildings);
+        points = calculateBuildingPoints(buildingType, collectedBuildings);
+        return points;
+    } else if (buildingType === 'industry') {
+        // Count all industries in the grid
+        for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+                if (buildingsGrid[i][j] === 'industry') {
+                    points++;
+                }
+            }
+        }
+        return points;
+    } else if (buildingType === 'road') {
+        // Check if there is a road nearby
+        let hasRoad = false;
+        for (let i = 0; i < surroundings.length; i++) {
+            if (surroundings[i].type === 'road') {
+                hasRoad = true;
+                break;
+            }
+        }
+        if (!hasRoad) return 0;
+
+        // Count all connected roads
+        const roadCount = countConnectedRoads(row, col);
+        return roadCount;
+    } else if (buildingType === 'commercial' || buildingType === 'park') {
+        // Check if there is a road nearby
+        let hasRoad = false;
+        for (let i = 0; i < surroundings.length; i++) {
+            if (surroundings[i].type === 'road') {
+                hasRoad = true;
+                break;
+            }
+        }
+        if (!hasRoad) return 0;
+
+        // Follow roads and collect connected buildings
+        const collectedBuildings = [];
+        followRoadAndCollectBuildings(row, col, collectedBuildings);
+        points = calculateBuildingPoints(buildingType, collectedBuildings);
+        return points;
+    }
+
+    return points;
+}
+
+/**
+ * Follows roads starting from a given cell (row, col) and collects all connected buildings.
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @param {Array} collectedBuildings - An array to store the collected buildings.
+ */
+function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.row !== startRow || s.col !== startCol) { // Exclude the starting building
+                if (s.type !== 'road' && s.type !== null) {
+                    collectedBuildings.push(s.type);
+                } else if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+                    queue.push(s);
+                    visited.add(`${s.row},${s.col}`);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Calculates points for a building based on its type and the types of collected surrounding buildings.
+ *
+ * @param {string} buildingType - The type of the building.
+ * @param {Array} surroundingBuildings - An array of types of the collected surrounding buildings.
+ * @returns {number} The calculated points for the building.
+ */
+function calculateBuildingPoints(buildingType, surroundingBuildings) {
+    let points = 0;
+
+    if (buildingType === 'residential') {
+        for (let i = 0; i < surroundingBuildings.length; i++) {
+            const type = surroundingBuildings[i];
+            if (type === 'residential' || type === 'commercial') {
+                points += 1;
+            } else if (type === 'park') {
+                points += 2;
+            }
+        }
+    } else if (buildingType === 'commercial') {
+        for (let i = 0; i < surroundingBuildings.length; i++) {
+            const type = surroundingBuildings[i];
+            if (type === 'commercial') {
+                points++;
+            }
+        }
+    } else if (buildingType === 'park') {
+        for (let i = 0; i < surroundingBuildings.length; i++) {
+            const type = surroundingBuildings[i];
+            if (type === 'park') {
+                points++;
+            }
+        }
+    }
+
+    return points;
 }
 
 function saveGame() {
@@ -352,30 +619,6 @@ function saveGame() {
 
 function exitGame() {
     window.location.href = '../index.html';
-}
-
-function getNeighbors(square) {
-    const grid = document.getElementById('grid');
-    const squares = Array.from(grid.children);
-    const index = squares.indexOf(square);
-    const rowSize = Math.sqrt(squares.length);
-
-    const neighbors = [];
-
-    if (index % rowSize !== 0) { // left neighbor
-        neighbors.push(squares[index - 1]);
-    }
-    if (index % rowSize !== rowSize - 1) { // right neighbor
-        neighbors.push(squares[index + 1]);
-    }
-    if (index >= rowSize) { // top neighbor
-        neighbors.push(squares[index - rowSize]);
-    }
-    if (index < squares.length - rowSize) { // bottom neighbor
-        neighbors.push(squares[index + rowSize]);
-    }
-
-    return neighbors;
 }
 
 window.onload = initializeGame;
