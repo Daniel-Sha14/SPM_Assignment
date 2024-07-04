@@ -57,7 +57,7 @@ function expandGrid() {
 }
 
 function placeBuilding(row, col, square) {
-    if (!square.classList.contains('built')) {
+    if (!square.classList.contains('built') && selectedBuilding) {
         square.innerText = buildings[selectedBuilding].icon;
         square.classList.add('built');
         buildingsGrid[row][col] = selectedBuilding;
@@ -222,19 +222,14 @@ function highlightDemolishableBuildings() {
         const row = Math.floor(Array.from(square.parentNode.children).indexOf(square) / gridSize);
         const col = Array.from(square.parentNode.children).indexOf(square) % gridSize;
 
-        if (square.classList.contains('built') && isOuterLayer(row, col)) {
+        if (square.classList.contains('built')) {
             square.classList.add('highlight-demolish');
         }
     });
 }
 
-function isOuterLayer(row, col) {
-    const neighbors = getNeighbors(row, col);
-    return neighbors.some(neighbor => !neighbor || !buildingsGrid[neighbor.row][neighbor.col]);
-}
-
 function demolishBuilding(row, col, square) {
-    if (demolishMode && square.classList.contains('built') && isOuterLayer(row, col)) {
+    if (demolishMode && square.classList.contains('built')) {
         square.innerText = '';
         square.classList.remove('built', 'highlight-demolish');
         buildingsGrid[row][col] = null;
@@ -262,9 +257,219 @@ function endTurn() {
     updateTurnCounter();
     removeBuildHighlights(); // Remove highlights at the end of each turn
     updatePoints(); // Calculate points at the end of each turn
-    updateProfitAndUpkeep(); // Calculate profit and upkeep at the end of each turn
+    // updateProfitAndUpkeep(); // Uncomment or define this function if needed
 }
 
+/**
+ * Checks the four surrounding cells of a given cell (row, col)
+ * and returns their positions and types.
+ *
+ * @param {number} row - The row index of the cell.
+ * @param {number} col - The column index of the cell.
+ * @returns {Array} An array of objects representing the surrounding cells.
+ */
+function checkSurroundings(row, col) {
+    const directions = [
+        { r: -1, c: 0 }, // up
+        { r: 1, c: 0 }, // down
+        { r: 0, c: -1 }, // left
+        { r: 0, c: 1 } // right
+    ];
+
+    const surroundings = [];
+
+    for (let i = 0; i < directions.length; i++) {
+        const newRow = row + directions[i].r;
+        const newCol = col + directions[i].c;
+        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+            surroundings.push({ row: newRow, col: newCol, type: buildingsGrid[newRow][newCol] });
+        }
+    }
+
+    return surroundings;
+}
+
+/**
+ * Calculates the points for a building at a given cell (row, col) based on its type and surroundings.
+ *
+ * @param {number} row - The row index of the cell.
+ * @param {number} col - The column index of the cell.
+ * @returns {number} The calculated points for the building at the given cell.
+ */
+function calculatePoints(row, col) {
+    const buildingType = buildingsGrid[row][col];
+    if (!buildingType) return 0;
+
+    const surroundings = checkSurroundings(row, col);
+    let points = 0;
+
+    if (buildingType === 'residential') {
+        // Check if there is an adjacent industry
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'industry') {
+                return 1;
+            }
+        }
+        // Check if there is a road nearby
+        let hasRoad = false;
+        for (let i = 0; i < surroundings.length; i++) {
+            if (surroundings[i].type === 'road') {
+                hasRoad = true;
+                break;
+            }
+        }
+        if (!hasRoad) return 0;
+        
+        // Follow roads and collect connected buildings
+        const collectedBuildings = [];
+        followRoadAndCollectBuildings(row, col, collectedBuildings);
+        points = calculateBuildingPoints(buildingType, collectedBuildings);
+        return points;
+    } else if (buildingType === 'industry') {
+        // Count all industries in the grid
+        for (let i = 0; i < gridSize; i++) {
+            for (let j = 0; j < gridSize; j++) {
+                if (buildingsGrid[i][j] === 'industry') {
+                    points++;
+                }
+            }
+        }
+        return points;
+    } else if (buildingType === 'road') {
+        // Check if there is a road nearby
+        let hasRoad = false;
+        for (let i = 0; i < surroundings.length; i++) {
+            if (surroundings[i].type === 'road') {
+                hasRoad = true;
+                break;
+            }
+        }
+        if (!hasRoad) return 0;
+
+        // Count all connected roads
+        const roadCount = countConnectedRoads(row, col);
+        return roadCount;
+    } else if (buildingType === 'commercial' || buildingType === 'park') {
+        // Check if there is a road nearby
+        let hasRoad = false;
+        for (let i = 0; i < surroundings.length; i++) {
+            if (surroundings[i].type === 'road') {
+                hasRoad = true;
+                break;
+            }
+        }
+        if (!hasRoad) return 0;
+
+        // Follow roads and collect connected buildings
+        const collectedBuildings = [];
+        followRoadAndCollectBuildings(row, col, collectedBuildings);
+        points = calculateBuildingPoints(buildingType, collectedBuildings);
+        return points;
+    }
+
+    return points;
+}
+
+/**
+ * Counts all connected road cells starting from a given cell (row, col).
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @returns {number} The count of all connected road cells.
+ */
+function countConnectedRoads(startRow, startCol) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+    let roadCount = 0;
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+        roadCount++;
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+                queue.push(s);
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
+    }
+
+    return roadCount;
+}
+
+/**
+ * Follows roads starting from a given cell (row, col) and collects all connected buildings.
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @param {Array} collectedBuildings - An array to store the collected buildings.
+ */
+function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.row !== startRow || s.col !== startCol) { // Exclude the starting building
+                if (s.type !== 'road' && s.type !== null) {
+                    collectedBuildings.push(s.type);
+                } else if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+                    queue.push(s);
+                    visited.add(`${s.row},${s.col}`);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Calculates points for a building based on its type and the types of collected surrounding buildings.
+ *
+ * @param {string} buildingType - The type of the building.
+ * @param {Array} surroundingBuildings - An array of types of the collected surrounding buildings.
+ * @returns {number} The calculated points for the building.
+ */
+function calculateBuildingPoints(buildingType, surroundingBuildings) {
+    let points = 0;
+
+    if (buildingType === 'residential') {
+        for (let i = 0; i < surroundingBuildings.length; i++) {
+            const type = surroundingBuildings[i];
+            if (type === 'residential' || type === 'commercial') {
+                points += 1;
+            } else if (type === 'park') {
+                points += 2;
+            }
+        }
+    } else if (buildingType === 'commercial') {
+        for (let i = 0; i < surroundingBuildings.length; i++) {
+            const type = surroundingBuildings[i];
+            if (type === 'commercial') {
+                points++;
+            }
+        }
+    } else if (buildingType === 'park') {
+        for (let i = 0; i < surroundingBuildings.length; i++) {
+            const type = surroundingBuildings[i];
+            if (type === 'park') {
+                points++;
+            }
+        }
+    }
+
+    return points;
+}
+
+/**
+ * Updates the points for the entire grid by calculating the points for each cell.
+ */
 function updatePoints() {
     points = 0;
     for (let row = 0; row < gridSize; row++) {
@@ -277,183 +482,6 @@ function updatePoints() {
     updateScoreboard();
 }
 
-function calculatePoints(row, col) {
-    const buildingType = buildingsGrid[row][col];
-    const adjacent = getAdjacentBuildings(row, col);
-    let buildingPoints = 0;
-
-    switch (buildingType) {
-        case 'residential':
-            if (adjacent.includes('industry')) {
-                buildingPoints = 1;
-            } else {
-                buildingPoints = adjacent.filter(b => b === 'residential' || b === 'commercial').length +
-                                 2 * adjacent.filter(b => b === 'park').length;
-            }
-            break;
-        case 'industry':
-            buildingPoints = buildingsGrid.flat().filter(b => b === 'industry').length;
-            break;
-        case 'commercial':
-            buildingPoints = adjacent.filter(b => b === 'commercial').length;
-            break;
-        case 'park':
-            buildingPoints = adjacent.filter(b => b === 'park').length;
-            break;
-        case 'road':
-            buildingPoints = calculateRoadPoints(row, col);
-            break;
-    }
-
-    return buildingPoints;
-}
-function calculateRoadPoints(row, col) {
-    let connectedRoads = 1; // Start with 1 for the current road
-    
-    // Check horizontally to the left
-    for (let c = col - 1; c >= 0; c--) {
-        if (buildingsGrid[row][c] === 'road') {
-            connectedRoads++;
-        } else {
-            break;
-        }
-    }
-    
-    // Check horizontally to the right
-    for (let c = col + 1; c < gridSize; c++) {
-        if (buildingsGrid[row][c] === 'road') {
-            connectedRoads++;
-        } else {
-            break;
-        }
-    }
-
-    // If there's only one road, return 0 points
-    return connectedRoads > 1 ? connectedRoads : 0;
-}
-function updateProfitAndUpkeep() {
-    let profit = 0;
-    let upkeep = 0;
-    const visitedResidential = new Set();
-
-    for (let row = 0; row < gridSize; row++) {
-        for (let col = 0; col < gridSize; col++) {
-            const buildingType = buildingsGrid[row][col];
-            if (buildingType) {
-                switch (buildingType) {
-                    case 'residential':
-                        profit += 1;
-                        if (!visitedResidential.has(`${row},${col}`)) {
-                            upkeep += calculateResidentialClusterUpkeep(row, col, visitedResidential);
-                        }
-                        break;
-                    case 'industry':
-                        profit += 2 + calculateIndustryProfit(row, col);
-                        upkeep += 1;
-                        break;
-                    case 'commercial':
-                        profit += 3 + calculateCommercialProfit(row, col);
-                        upkeep += 2;
-                        break;
-                    case 'park':
-                        upkeep += 1;
-                        break;
-                    case 'road':
-                        if (!isConnectedRoad(row, col)) {
-                            upkeep += 1;
-                        }
-                        break;
-                }
-            }
-        }
-    }
-
-    coins += profit - upkeep;
-    updateScoreboard();
-}
-
-function calculateResidentialClusterUpkeep(row, col, visited) {
-    const stack = [[row, col]];
-    let clusterSize = 0;
-
-    while (stack.length > 0) {
-        const [r, c] = stack.pop();
-        const key = `${r},${c}`;
-
-        if (visited.has(key)) continue;
-        visited.add(key);
-
-        if (buildingsGrid[r][c] === 'residential') {
-            clusterSize++;
-            for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-                const newRow = r + dr;
-                const newCol = c + dc;
-                if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
-                    stack.push([newRow, newCol]);
-                }
-            }
-        }
-    }
-
-    return clusterSize > 0 ? 1 : 0;
-}
-
-function calculateIndustryProfit(row, col) {
-    return getAdjacentBuildings(row, col).filter(b => b === 'residential').length;
-}
-
-function calculateCommercialProfit(row, col) {
-    return getAdjacentBuildings(row, col).filter(b => b === 'residential').length;
-}
-
-
-function isConnectedRoad(row, col) {
-    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-    for (const [dr, dc] of directions) {
-        let newRow = row + dr;
-        let newCol = col + dc;
-        
-        // Follow the road
-        while (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
-            const neighborBuilding = buildingsGrid[newRow][newCol];
-            if (neighborBuilding === 'road') {
-                newRow += dr;
-                newCol += dc;
-            } else if (neighborBuilding && neighborBuilding !== 'road') {
-                return true;
-            } else {
-                break;
-            }
-        }
-    }
-    return false;
-}
-function getAdjacentBuildings(row, col) {
-    const adjacent = [];
-    const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-
-    for (const [dr, dc] of directions) {
-        let newRow = row + dr;
-        let newCol = col + dc;
-
-        // Follow the road
-        while (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
-            const building = buildingsGrid[newRow][newCol];
-
-            if (building === 'road') {
-                newRow += dr;
-                newCol += dc;
-            } else if (building) {
-                adjacent.push(building);
-                break;
-            } else {
-                break;
-            }
-        }
-    }
-
-    return adjacent;
-}
 function saveGame() {
     alert("Game saved!");
 }
@@ -461,15 +489,3 @@ function saveGame() {
 function exitGame() {
     window.location.href = 'index.html';
 }
-
-function getNeighbors(row, col) {
-    const neighbors = [];
-    if (row > 0) neighbors.push({ row: row - 1, col });
-    if (row < gridSize - 1) neighbors.push({ row: row + 1, col });
-    if (col > 0) neighbors.push({ row, col: col - 1 });
-    if (col < gridSize - 1) neighbors.push({ row, col: col + 1 });
-
-    return neighbors;
-}
-
-window.onload = initializeGame;
