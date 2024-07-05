@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngee Ann City</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    
+    <div class="container">
+        <div id="main-menu">
+            <h1>Ngee Ann City</h1>
+            <div class="menu">
+                <button class="button" id="new-arcade-game">New Arcade Game</button>
+                <button class="button" id="new-free-play-game">New Free Play Game</button>
+                <button class="button" id="load-saved-game">Load Saved Game</button>
+                <button class="button" id="display-high-scores">View High Scores</button>
+                <button class="button" id="exit-game">Exit Game</button>
+            </div>
+        </div>
+
+        <div id="save-game-selection" class="hidden">
+            <h2>Load Saved Game</h2>
+            <div id="save-game-container"></div>
+            <div class="navigation-buttons">
+                <button id="prev-page" class="nav-button">Previous</button>
+                <button id="next-page" class="nav-button">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="music-control" class="music-control">🔇</button>
+    <audio id="background-music" src="/music/music.mp3" autoplay loop></audio>
+    <script src="/js/script.js"></script>
+</body>
+</html>
