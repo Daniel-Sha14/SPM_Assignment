@@ -1,89 +1,117 @@
-body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: rgba(116, 208, 23, 0.2); 
-    display: flex;
-    justify-content: center;
-    
-    height: 110vh;
-    margin: 0;
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
-.container {
-    background-color: #ffffff;
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    width: 600px;
-}
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Poppins', sans-serif;
+            background: url('../SPM_Assignment/images/neon-landscape-background_53876-91655.avif') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
+        #main-menu {
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 80%;
+            max-width: 600px;
+        }
 
-h1 {
-    margin-bottom: 30px;
-    color: #C2B153;
-    font-size: 180px;
-    margin-top: 60px;
-}
+        #head {
+            margin-bottom: 2rem;
+        }
 
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding-bottom: 20px;
-}
-#head{
-    display: flex;
-    gap: 20px;
-    padding-top: 0px;
-    margin-top: 0px;
-}
-.menu2 {
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    justify-content: space-between;
-}
+        h1 {
+            margin: 0;
+            font-size: 4rem;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+            letter-spacing: 2px;
+        }
 
-.menu-button {
-    padding: 30px 25px;
-    font-size: 25px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    background-color: #8BDBB0;
-    color: black;
-    transition: background-color 0.3s, transform 0.3s;
-    width: 100%;
-}
+        #title {
+            color: #ffd700;
+            font-weight: 700;
+        }
 
-.menu-button:hover {
-    background-color: #69d49b;
-    transform: scale(1.05);
-}
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
 
-.menu-button:active {
-    background-color: #003d80;
-}
+        .menu-button {
+            background: linear-gradient(45deg, #4a90e2, #63b8ff);
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 4px 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
 
-#game-board {
-    display: none;
-}
+        .menu-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            transition: all 0.3s ease;
+        }
 
-#board {
-    display: grid;
-    grid-template-columns: repeat(20, 20px);
-    grid-gap: 2px;
-    margin: 20px auto;
-}
+        .menu-button:hover::after {
+            left: 100%;
+        }
 
-#board div {
-    width: 20px;
-    height: 20px;
-    border: 1px solid #ccc;
-}
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.18), 0 5px 5px rgba(0, 0, 0, 0.12);
+        }
 
-#game-info {
-    margin-bottom: 20px;
-}
+        .menu-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.16);
+        }
 
+        .menu2 {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1rem;
+        }
 
+        .menu2 .menu-button {
+            flex: 1;
+            margin: 0 0.5rem;
+            font-size: 16px;
+            padding: 12px 24px;
+        }
+
+        #load-saved-game {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+        }
+
+        #exit-game {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+       
