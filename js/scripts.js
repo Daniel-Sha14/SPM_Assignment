@@ -52,7 +52,7 @@ const buildings = {
 };
 
 let selectedBuilding = null;
-let selectedBuildings = [];
+
 let points = 0;
 let coins = 16;
 let turnNumber = 1;
@@ -60,8 +60,9 @@ let firstBuildingPlaced = false;
 let demolishMode = false;
 let gridSize = 20; // Define grid size
 let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null)); // Define buildingsGrid
-const allBuildings = Object.keys(buildings);
+let allBuildings = Object.keys(buildings);
 let availableBuildings = [...allBuildings];
+let selectedBuildings = [];
 
 function updateScoreboard() {
     document.getElementById('score').innerText = points;
@@ -100,33 +101,32 @@ function getRandomBuilding(exclude) {
 
 function initializeGame() {
     updateTurnCounter();
-    selectedBuildings = getNewBuildings([]);
+    selectedBuildings = getNewBuildings();
     updateSelectedBuildingsUI();
     updateScoreboard();
 }
-
-function getNewBuildings(exclude) {
-    // Add the previously excluded buildings back to the available pool
-    availableBuildings = [...new Set([...availableBuildings, ...exclude])];
-
-    // Filter out the current selected buildings from the pool
-    let remainingBuildings = availableBuildings.filter(building => !selectedBuildings.includes(building));
+function getNewBuildings() {
     const newBuildings = [];
 
-    while (newBuildings.length < 2 && remainingBuildings.length > 0) {
-        const randomBuilding = remainingBuildings[Math.floor(Math.random() * remainingBuildings.length)];
-        if (!newBuildings.includes(randomBuilding)) {
-            newBuildings.push(randomBuilding);
-        }
-        remainingBuildings = remainingBuildings.filter(building => building !== randomBuilding);
+    // Select two new buildings from availableBuildings
+    while (newBuildings.length < 2 && availableBuildings.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availableBuildings.length);
+        const randomBuilding = availableBuildings.splice(randomIndex, 1)[0];
+        newBuildings.push(randomBuilding);
     }
 
-    // Update available buildings to exclude the newly selected ones
-    availableBuildings = availableBuildings.filter(building => !newBuildings.includes(building));
+    // If we couldn't get 2 new buildings, refill availableBuildings and try again
+    if (newBuildings.length < 2) {
+        availableBuildings = [...allBuildings];
+        while (newBuildings.length < 2) {
+            const randomIndex = Math.floor(Math.random() * availableBuildings.length);
+            const randomBuilding = availableBuildings.splice(randomIndex, 1)[0];
+            newBuildings.push(randomBuilding);
+        }
+    }
 
-    // Debugging logs to verify the selection process
-    console.log("New buildings selected:", newBuildings);
-    console.log("Available buildings after selection:", availableBuildings);
+    // Add the previously selected buildings back to availableBuildings
+    availableBuildings.push(...selectedBuildings);
 
     return newBuildings;
 }
@@ -147,7 +147,6 @@ function updateSelectedBuildingsUI() {
         selectBuilding(selectedBuildings[0]);
     }
 }
-
 function highlightValidCells() {
     const gridSquares = document.querySelectorAll('.grid-square');
 
@@ -410,11 +409,10 @@ function endTurn() {
     turnNumber += 1;
     updateTurnCounter();
 
-    updateProfitAndUpkeep(); // Update profit and upkeep at the end of each turn
+    updateProfitAndUpkeep();
 
-    // Refresh the pool of selected buildings, including previously discarded ones
-    const previouslySelectedBuildings = [...selectedBuildings];
-    selectedBuildings = getNewBuildings(previouslySelectedBuildings);
+    // Get new buildings and update UI
+    selectedBuildings = getNewBuildings();
     updateSelectedBuildingsUI();
 }
 
