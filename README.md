@@ -21,6 +21,7 @@ CREATE TABLE game_saves (
     created_at DATETIME NULL,
     gameMode NVARCHAR(MAX) NULL
 );
+```
 
 ### 2. Creating the Users Table
 
@@ -32,7 +33,7 @@ CREATE TABLE Users (
     Email NVARCHAR(100) NOT NULL UNIQUE,
     CreatedAt DATETIME DEFAULT GETDATE()
 );
-
+```
 ### 3. Creating the UserEvents Table
 
 ```sql
@@ -43,3 +44,4 @@ CREATE TABLE UserEvents (
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (EventId) REFERENCES game_saves(id)
 );
+```
