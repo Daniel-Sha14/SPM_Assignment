@@ -1,15 +1,16 @@
-# SPM_Assignment
+# Game Saves Database Setup
 
-# Creating Database and Account Credentials
+## Database and Account Credentials
 
-Database Name: game_saves
-account name: game
-account password: 123
+- **Database Name**: `game_saves`
+- **Account Name**: `game`
+- **Account Password**: `123`
 
+## SQL Tables Creation
 
-# Creating SQL Tables:
+### 1. Creating the `game_saves` Table
 
-1. 
+```sql
 CREATE TABLE game_saves (
     id INT IDENTITY(1,1) PRIMARY KEY,
     grid_size INT NOT NULL,
@@ -21,7 +22,9 @@ CREATE TABLE game_saves (
     gameMode NVARCHAR(MAX) NULL
 );
 
-2. 
+### 2. Creating the Users Table
+
+```sql
 CREATE TABLE Users (
     UserId INT IDENTITY(1,1) PRIMARY KEY,
     Username NVARCHAR(50) NOT NULL UNIQUE,
@@ -30,7 +33,9 @@ CREATE TABLE Users (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 
-3.
+### 3. Creating the UserEvents Table
+
+```sql
 CREATE TABLE UserEvents (
     UserEventId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
