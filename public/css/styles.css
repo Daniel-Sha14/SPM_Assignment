@@ -18,9 +18,11 @@ body {
     background-color: var(--primary-bg);
     color: var(--text-color);
     margin: 0;
+   
+    
     padding: 20px;
     display: flex;
-    justify-content: center;
+    justify-content: left;
     min-height: 100vh;
     background-image: url('../images/neon-landscape-background_53876-91655.avif');
     background-size: cover;
@@ -31,7 +33,8 @@ body {
 .game-container {
     display: flex;
     gap: 20px;
-    width: 100%;
+    width: 95%;
+  
 }
 
 .sidebar {
@@ -39,6 +42,8 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    height: 70vh;
+    margin-top: 60px;
 }
 
 .panel {
@@ -59,14 +64,17 @@ body {
     background-color: var(--accent-color);
     color: var(--primary-bg);
     padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     border-radius: var(--border-radius);
     text-align: center;
     font-weight: bold;
+
     box-shadow: 0 0 10px var(--accent-color);
 }
 
 .buttons {
-    grid-column: 1 / -1;
+    grid-column: 2 / -2;
     display: flex;
     justify-content: space-between;
     margin-top: 10px;
@@ -84,6 +92,7 @@ body {
     background: linear-gradient(45deg, var(--accent-color), var(--secondary-color));
     box-shadow: var(--button-shadow);
     font-size: 14px;
+    font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -105,28 +114,6 @@ body {
     justify-content: space-between;
 }
 
-.mode-button {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    border-radius: var(--border-radius);
-    background-color: var(--accent-color);
-    color: var(--primary-bg);
-    cursor: pointer;
-    transition: background-color 0.3s, box-shadow 0.3s;
-    box-shadow: var(--button-shadow);
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.mode-button.active {
-    background-color: var(--success-color);
-}
-
-.mode-button:hover {
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-}
 
 .building-options {
     display: flex;
@@ -172,6 +159,7 @@ body {
     justify-content: center;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
+    border: 1px solid black;
 }
 
 .action-button {
@@ -179,14 +167,19 @@ body {
     color: var(--primary-bg);
     justify-content: center;
     font-weight: bold;
+    text-align: center;
     padding: 10px;
+    padding-bottom: 20px;
+    padding-top: 20px;
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color 0.3s, box-shadow 0.3s;
     box-shadow: var(--button-shadow);
-    font-size: 14px;
+    font-size: 30px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 5px;
+    text-shadow: 1px 1px white, 2px 2px white, 2px 2px white;
+    text-shadow: 1px 1px rgb(255, 255, 255), 2px 2px rgb(0, 162, 255), 2px 2px rgb(0, 162, 255); 
 }
 
 #demolish-button {
@@ -199,14 +192,18 @@ body {
 
 .building-description {
     margin-top: 20px;
+    margin-bottom: 20px;
     background-color: var(--secondary-bg);
     border-radius: var(--border-radius);
     padding: 15px;
+    letter-spacing: 2px;
     box-shadow: 0 0 20px var(--accent-color);
+    color:rgb(195, 221, 217);
 }
 
 .platform {
     flex: 1;
+    margin-top: 60px;
 }
 
 .grid {
@@ -215,8 +212,8 @@ body {
     grid-template-columns: repeat(20, 1fr);
     gap: 1px;
     background-color: whitesmoke;
-    padding: 1px;
-    
+    padding: 10px;
+    border-radius: 10px;
     font-size: 100%;
 }
 
@@ -261,4 +258,18 @@ body {
         flex: none;
         width: 100%;
     }
+}
+.music-control {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: transparent;
+    border: none;
+    font-size: 34px;
+    cursor: pointer;
+    z-index: 1000; /* Ensure it is above other elements */
+}
+
+.music-control:focus {
+    outline: none; /* Remove focus outline */
 }

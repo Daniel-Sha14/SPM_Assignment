@@ -1,3 +1,41 @@
+function saveGame() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You need to be logged in to save the game.');
+        return;
+    }
+
+    const gameState = {
+        gridSize: gridSize,
+        buildingsGrid: buildingsGrid,
+        points: points,
+        coins: coins,
+        turnNumber: turnNumber,
+        gameMode: 'arcade'
+    };
+
+    fetch('/save-game', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(gameState)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Game saved successfully!');
+        } else {
+            alert('Error saving game: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving game');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('grid');
 
@@ -16,6 +54,57 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+});
+document.addEventListener('DOMContentLoaded', () => {
+    const loadedGame = localStorage.getItem('loadedGame');
+    if (loadedGame) {
+        const gameState = JSON.parse(loadedGame);
+        gridSize = gameState.gridSize;
+        buildingsGrid = gameState.buildingsGrid;
+        points = gameState.points;
+        coins = gameState.coins;
+        turnNumber = gameState.turnNumber;
+        gameMode = gameState.gameMode;
+        localStorage.removeItem('loadedGame'); // Clear the loaded game from localStorage
+        const grid = document.getElementById('grid');
+
+    // Create the grid squares
+    for (let i = 0; i < gridSize * gridSize; i++) {
+        const square = document.createElement('div');
+        square.classList.add('grid-square');
+        const row = Math.floor(i / gridSize);
+        const col = i % gridSize;
+        if (buildingsGrid[row][col]) {
+            square.innerText = buildings[buildingsGrid[row][col]].icon;
+            square.classList.add('built');
+        }
+        square.addEventListener('click', () => {
+            if (demolishMode) {
+                demolishBuilding(square);
+            } else {
+                placeBuilding(square);
+            }
+        });
+        grid.appendChild(square);
+    }
+
+    initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+    }
+
+    
+});
+document.getElementById('music-control').addEventListener('click', function() {
+    var audio = document.getElementById('background-music');
+    if (audio.paused) {
+        audio.play().then(function() {
+            document.getElementById('music-control').textContent = '🔊';
+        }).catch(function(error) {
+            console.log('Error playing audio:', error);
+        });
+    } else {
+        audio.pause();
+        document.getElementById('music-control').textContent = '🔇';
+    }
 });
 
 const buildings = {
@@ -105,6 +194,7 @@ function initializeGame() {
     updateSelectedBuildingsUI();
     updateScoreboard();
 }
+
 function getNewBuildings() {
     const newBuildings = [];
 
@@ -131,7 +221,6 @@ function getNewBuildings() {
     return newBuildings;
 }
 
-
 function updateSelectedBuildingsUI() {
     document.querySelectorAll('.building').forEach(building => {
         if (!selectedBuildings.includes(building.id)) {
@@ -147,6 +236,7 @@ function updateSelectedBuildingsUI() {
         selectBuilding(selectedBuildings[0]);
     }
 }
+
 function highlightValidCells() {
     const gridSquares = document.querySelectorAll('.grid-square');
 
@@ -185,7 +275,7 @@ function placeBuilding(square) {
             alert('This square already has a building. You cannot build over an existing building.');
             return;
         }
-        
+
         const index = Array.from(document.querySelectorAll('.grid-square')).indexOf(square);
         const row = Math.floor(index / gridSize);
         const col = index % gridSize;
@@ -260,7 +350,6 @@ function demolishBuilding(square) {
         alert('Not enough coins to demolish a building.');
     }
 }
-
 
 // Remove highlight from all cells
 function removeDemolishHighlights() {
@@ -385,7 +474,6 @@ function followRoadAndCollectResidentials(startRow, startCol, collectedResidenti
     }
 }
 
-
 function endTurn() {
     updatePoints();
     turnNumber += 1;
@@ -397,7 +485,6 @@ function endTurn() {
     selectedBuildings = getNewBuildings();
     updateSelectedBuildingsUI();
 }
-
 
 function updatePoints() {
     points = 0;
@@ -475,7 +562,7 @@ function calculatePoints(row, col) {
             }
         }
         if (!hasRoad) return 0;
-        
+
         // Follow roads and collect connected buildings
         const collectedBuildings = [];
         for (let i = 0; i < surroundings.length; i++) {
@@ -630,13 +717,8 @@ function calculateBuildingPoints(buildingType, surroundingBuildings, originalRow
     return points;
 }
 
-
-function saveGame() {
-    alert("Game saved!");
-}
-
 function exitGame() {
-    window.location.href = '../index.html';
+    window.location.href = '../html/index.html';
 }
 
 window.onload = initializeGame;

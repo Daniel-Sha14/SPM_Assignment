@@ -3,9 +3,28 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeGame(); // Initialize the game here to ensure the initial buildings are selected
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    const loadedGame = localStorage.getItem('loadedGame');
+    if (loadedGame) {
+        const gameState = JSON.parse(loadedGame);
+        gridSize = gameState.gridSize;
+        buildingsGrid = gameState.buildingsGrid;
+        points = gameState.points;
+        coins = gameState.coins;
+        turnNumber = gameState.turnNumber;
+        gameMode = gameState.gameMode;
+        localStorage.removeItem('loadedGame'); // Clear the loaded game from localStorage
+
+        initializeGrid(gridSize); // Initialize the grid with the correct size
+    initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+    }
+
+    
+});
 let gridSize = 5;
 let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
 let buildMode = false; // Track if build mode is active
+const maxGridSize = 95;
 
 function initializeGrid(size) {
     const grid = document.getElementById('grid');
@@ -13,45 +32,68 @@ function initializeGrid(size) {
     grid.style.gridTemplateColumns = `repeat(${size}, 50px)`; // Set each cell to be 50px by 50px
     grid.style.gridTemplateRows = `repeat(${size}, 50px)`; 
 
+    const fragment = document.createDocumentFragment();
+
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
             const square = document.createElement('div');
             square.classList.add('grid-square');
+            square.dataset.row = i;
+            square.dataset.col = j;
             if (buildingsGrid[i][j]) {
                 square.innerText = buildings[buildingsGrid[i][j]].icon;
                 square.classList.add('built');
             }
-            square.addEventListener('click', () => {
-                if (demolishMode) {
-                    demolishBuilding(i, j, square);
-                } else if (buildMode) {
-                    placeBuilding(i, j, square);
-                }
-            });
-            grid.appendChild(square);
+            fragment.appendChild(square);
         }
     }
+
+    grid.appendChild(fragment);
 
     // Adjust platform size based on grid size
     const platform = document.querySelector('.platform');
     const platformSize = size * 52; // 50px cell size + 2px gap
     platform.style.width = `${platformSize}px`;
     platform.style.height = `${platformSize}px`;
+
+    // Use event delegation for better performance
+    grid.removeEventListener('click', handleGridClick); // Remove previous event listener if any
+    grid.addEventListener('click', handleGridClick);
+}
+
+function handleGridClick(event) {
+    const square = event.target.closest('.grid-square');
+    if (!square) return;
+
+    const row = parseInt(square.dataset.row);
+    const col = parseInt(square.dataset.col);
+
+    if (demolishMode) {
+        demolishBuilding(row, col, square);
+    } else if (buildMode) {
+        placeBuilding(row, col, square);
+    }
 }
 
 function expandGrid() {
-    gridSize += 10; // Expand by 10 (5 rows/columns on each side)
+    if (gridSize >= maxGridSize) {
+        alert('Maximum grid size reached!');
+        return;
+    }
 
-    const newBuildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
+    const newGridSize = Math.min(gridSize + 10, maxGridSize); // Ensure grid size doesn't exceed maxGridSize
+    const offset = (newGridSize - gridSize) / 2;
+
+    const newBuildingsGrid = Array.from({ length: newGridSize }, () => Array(newGridSize).fill(null));
 
     // Copy old grid to the new center
-    const offset = 5;
-    for (let i = 0; i < gridSize - 10; i++) {
-        for (let j = 0; j < gridSize - 10; j++) {
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
             newBuildingsGrid[i + offset][j + offset] = buildingsGrid[i][j];
         }
     }
 
+    gridSize = newGridSize;
     buildingsGrid = newBuildingsGrid;
     initializeGrid(gridSize);
 }
@@ -181,8 +223,8 @@ function highlightValidCells() {
 
     gridSquares.forEach(square => {
         square.classList.remove('highlight');
-        const row = Math.floor(Array.from(square.parentNode.children).indexOf(square) / gridSize);
-        const col = Array.from(square.parentNode.children).indexOf(square) % gridSize;
+        const row = parseInt(square.dataset.row);
+        const col = parseInt(square.dataset.col);
 
         if (isValidPlacement(row, col)) {
             square.classList.add('highlight');
@@ -219,8 +261,8 @@ function enterDemolishMode() {
 function highlightDemolishableBuildings() {
     const gridSquares = document.querySelectorAll('.grid-square');
     gridSquares.forEach(square => {
-        const row = Math.floor(Array.from(square.parentNode.children).indexOf(square) / gridSize);
-        const col = Array.from(square.parentNode.children).indexOf(square) % gridSize;
+        const row = parseInt(square.dataset.row);
+        const col = parseInt(square.dataset.col);
 
         if (square.classList.contains('built')) {
             square.classList.add('highlight-demolish');
@@ -491,18 +533,26 @@ function updatePoints() {
 }
 
 function saveGame() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You need to be logged in to save the game.');
+        return;
+    }
+
     const gameState = {
         gridSize: gridSize,
         buildingsGrid: buildingsGrid,
         points: points,
         coins: -1,
-        turnNumber: turnNumber
+        turnNumber: turnNumber,
+        gameMode: 'freePlay'
     };
 
     fetch('/save-game', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(gameState)
     })
@@ -511,7 +561,7 @@ function saveGame() {
         if (data.status === 'success') {
             alert('Game saved successfully!');
         } else {
-            alert('Error saving game');
+            alert('Error saving game: ' + data.message);
         }
     })
     .catch(error => {
@@ -520,8 +570,9 @@ function saveGame() {
     });
 }
 
+
 function exitGame() {
-    window.location.href = 'index.html';
+    window.location.href = '../html/index.html';
 }
 
 document.getElementById('music-control').addEventListener('click', function() {

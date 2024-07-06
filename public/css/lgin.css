@@ -1,0 +1,109 @@
+/* styles.css */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+    color: #fff;
+}
+
+.background {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: url('../images/neon-landscape-background_53876-91655.avif') no-repeat center center/cover;
+}
+
+.container {
+    background: rgba(12, 12, 30, 0.9);
+    border: 2px solid #00f3ff;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    text-align: center;
+    margin-top: 250px;
+    box-shadow: 0 0 20px #00f3ff;
+    transition: opacity 0.5s;
+}
+
+h1 {
+    font-family: 'Neon', sans-serif;
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-family: 'Neon', sans-serif;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+input {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #00f3ff;
+    border-radius: 5px;
+    background: transparent;
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s;
+}
+
+input:focus {
+    box-shadow: 0 0 10px #00f3ff;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(to right, #00f3ff, #0f20ff);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+button:hover {
+    background: linear-gradient(to right, #0f20ff, #00f3ff);
+}
+
+.toggle-text {
+    margin: 15px 0;
+}
+
+.toggle-text span {
+    color: #00f3ff;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.hidden {
+    opacity: 0;
+}
+.back-button {
+    margin-top: 15px;
+    background: linear-gradient(to right, #ff007a, #ff00ff);
+}
+
+.back-button:hover {
+    background: linear-gradient(to right, #ff00ff, #ff007a);
+}
+.hidden{
+    display: none;
+}
+/* Add these new styles to your existing CSS file (/css/style.css) */
+
