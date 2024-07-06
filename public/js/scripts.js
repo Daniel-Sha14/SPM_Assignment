@@ -152,16 +152,19 @@ function highlightValidCells() {
 
     gridSquares.forEach(square => {
         square.classList.remove('highlight');
-        if (firstBuildingPlaced) {
-            const index = Array.from(gridSquares).indexOf(square);
-            const row = Math.floor(index / gridSize);
-            const col = index % gridSize;
-            const neighbors = checkSurroundings(row, col);
-            if (neighbors.some(neighbor => neighbor.type)) {
+        const index = Array.from(gridSquares).indexOf(square);
+        const row = Math.floor(index / gridSize);
+        const col = index % gridSize;
+
+        if (!square.classList.contains('built')) { // Only highlight if the square is not occupied
+            if (firstBuildingPlaced) {
+                const neighbors = checkSurroundings(row, col);
+                if (neighbors.some(neighbor => neighbor.type)) {
+                    square.classList.add('highlight');
+                }
+            } else {
                 square.classList.add('highlight');
             }
-        } else {
-            square.classList.add('highlight');
         }
     });
 }
@@ -178,6 +181,11 @@ function buildStructure() {
 
 function placeBuilding(square) {
     if (square.classList.contains('highlight') && coins > 0) {
+        if (square.classList.contains('built')) {
+            alert('This square already has a building. You cannot build over an existing building.');
+            return;
+        }
+        
         const index = Array.from(document.querySelectorAll('.grid-square')).indexOf(square);
         const row = Math.floor(index / gridSize);
         const col = index % gridSize;
@@ -252,6 +260,7 @@ function demolishBuilding(square) {
         alert('Not enough coins to demolish a building.');
     }
 }
+
 
 // Remove highlight from all cells
 function removeDemolishHighlights() {
