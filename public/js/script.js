@@ -67,16 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
     function createSaveGameCard(game, index) {
         const card = document.createElement('div');
         card.className = 'save-game-card';
-        card.dataset = {
-            gameId: game.id,
-            gridSize: game.gridSize,
-            buildingsGrid: JSON.stringify(game.buildingsGrid),
-            points: game.points,
-            coins: game.coins === -1 ? Infinity : game.coins,
-            turnNumber: game.turnNumber,
-            gameMode: game.gameMode
-        };
+       
+        card.dataset.gameId = game.id;
+    card.dataset.gridSize = game.gridSize;
+    card.dataset.buildingsGrid = JSON.stringify(game.buildingsGrid);
+    card.dataset.points = game.points;
+    card.dataset.coins = game.coins === -1 ? Infinity : game.coins;
+    card.dataset.turnNumber = game.turnNumber;
+    card.dataset.gameMode = game.gameMode;
 
+        console.log(card.dataset.buildingsGrid);
         const canvas = document.createElement('canvas');
         canvas.width = 200;
         canvas.height = 200;
@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadSaveGame(card) {
+        console.log(card.dataset.buildingsGrid);
         const gameData = {
             gameId: card.dataset.gameId,
             gridSize: card.dataset.gridSize,
@@ -141,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             turnNumber: card.dataset.turnNumber,
             gameMode: card.dataset.gameMode
         };
+        
         localStorage.setItem('loadedGame', JSON.stringify(gameData));
         const gamePage = gameData.gameMode === 'arcade' ? '../html/arcade-game.html' : '../html/freePlay.html';
         window.location.href = gamePage;

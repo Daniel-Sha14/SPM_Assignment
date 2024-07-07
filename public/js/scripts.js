@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('grid');
 
     // Create the grid squares
-    for (let i = 0; i < 400; i++) {  // 20x20 grid
+    for (let i = 0; i < gridSize * gridSize; i++) {  // 20x20 grid
         const square = document.createElement('div');
         square.classList.add('grid-square');
         square.addEventListener('click', () => {
@@ -53,22 +53,26 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.appendChild(square);
     }
 
-    initializeGame(); // Initialize the game here to ensure the initial buildings are selected
-});
-document.addEventListener('DOMContentLoaded', () => {
     const loadedGame = localStorage.getItem('loadedGame');
     if (loadedGame) {
-        const gameState = JSON.parse(loadedGame);
-        gridSize = gameState.gridSize;
-        buildingsGrid = gameState.buildingsGrid;
-        points = gameState.points;
-        coins = gameState.coins;
-        turnNumber = gameState.turnNumber;
-        gameMode = gameState.gameMode;
+        loadGameState(JSON.parse(loadedGame));
         localStorage.removeItem('loadedGame'); // Clear the loaded game from localStorage
-        const grid = document.getElementById('grid');
+    } else {
+        initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+    }
+});
 
-    // Create the grid squares
+function loadGameState(gameState) {
+    gridSize = gameState.gridSize;
+    buildingsGrid = gameState.buildingsGrid;
+    points = gameState.points;
+    coins = gameState.coins;
+    turnNumber = gameState.turnNumber;
+    gameMode = gameState.gameMode;
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = ''; // Clear the grid
+
     for (let i = 0; i < gridSize * gridSize; i++) {
         const square = document.createElement('div');
         square.classList.add('grid-square');
@@ -89,10 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initializeGame(); // Initialize the game here to ensure the initial buildings are selected
-    }
-
-    
-});
+}
 
 
 const buildings = {

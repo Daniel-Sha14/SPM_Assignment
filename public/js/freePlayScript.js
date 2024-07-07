@@ -1,9 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    initializeGrid(5); // Start with a 5x5 grid
-    initializeGame(); // Initialize the game here to ensure the initial buildings are selected
-});
-
-document.addEventListener('DOMContentLoaded', () => {
     const loadedGame = localStorage.getItem('loadedGame');
     if (loadedGame) {
         const gameState = JSON.parse(loadedGame);
@@ -16,11 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.removeItem('loadedGame'); // Clear the loaded game from localStorage
 
         initializeGrid(gridSize); // Initialize the grid with the correct size
-    initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+        initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+    } else {
+        initializeGrid(gridSize); // Start with a 5x5 grid
+        initializeGame(); // Initialize the game here to ensure the initial buildings are selected
     }
-
-    
 });
+
 let gridSize = 5;
 let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
 let buildMode = false; // Track if build mode is active
@@ -82,7 +79,7 @@ function expandGrid() {
     }
 
     const newGridSize = Math.min(gridSize + 10, maxGridSize); // Ensure grid size doesn't exceed maxGridSize
-    const offset = (newGridSize - gridSize) / 2;
+    const offset = Math.floor((newGridSize - gridSize) / 2);
 
     const newBuildingsGrid = Array.from({ length: newGridSize }, () => Array(newGridSize).fill(null));
 
@@ -570,8 +567,6 @@ function saveGame() {
     });
 }
 
-
 function exitGame() {
     window.location.href = '../html/index.html';
 }
-
