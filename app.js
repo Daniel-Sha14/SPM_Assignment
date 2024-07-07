@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const dbConfig = require('./sqlConfig');
-const JWT_SECRET = 'your_secret_key_here'; // Replace with your secret key
+const JWT_SECRET = 'your_secret_key_here'; 
 
 sql.connect(dbConfig, err => {
     if (err) {
@@ -202,6 +202,41 @@ app.get('/get-games', verifyToken, async (req, res) => {
     } catch (err) {
         res.status(500).json({ status: 'error', message: 'Error retrieving games' });
         console.error('Error retrieving games:', err);
+    }
+});
+
+app.get('/get-high-scores', verifyToken, async (req, res) => {
+    try {
+        const query = `
+            SELECT TOP 100
+                u.Username AS playerName,
+                gs.points AS score,
+                gs.turn_number AS turnNumber,
+                gs.created_at AS date
+            FROM highscores hs
+            INNER JOIN Users u ON hs.userId = u.UserId
+            INNER JOIN game_saves gs ON hs.id = gs.id
+            WHERE gs.turn_number > 0 AND gs.gameMode = 'arcade'
+            ORDER BY gs.points DESC, gs.created_at DESC
+        `;
+
+        const request = new sql.Request();
+        const result = await request.query(query);
+
+        const highScores = result.recordset.map(score => ({
+            playerName: score.playerName,
+            score: score.score,
+            turnNumber: score.turnNumber,
+            date: score.date
+        }));
+
+        res.status(200).json({
+            status: 'success',
+            highScores
+        });
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: 'Error retrieving high scores' });
+        console.error('Error retrieving high scores:', err);
     }
 });
 

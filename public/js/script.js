@@ -4,43 +4,56 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveGameContainer = document.getElementById('save-game-container');
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
+    const loginButton = document.getElementById('login');
+    const exitGameButton = document.getElementById('exit-game');
+    const newArcadeGameBtn = document.getElementById('new-arcade-game');
+    const newFreePlayGameBtn = document.getElementById('new-free-play-game');
+    const loadSavedGameBtn = document.getElementById('load-saved-game');
+    const displayHighScoresBtn = document.getElementById('display-high-scores');
+    const returnToMenuBtn = document.createElement('button');
+    const musicControl = document.getElementById('music-control');
+    const audio = document.getElementById('background-music');
 
-    // Game state
     let saveGames = [];
     let currentPage = 0;
     const gamesPerPage = 5;
 
-    // Fetch save games from the server
-    async function fetchSaveGames() {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                throw new Error('No token found');
+    // Initial state setup
+    if (localStorage.getItem('token')) {
+        setLoggedInState();
+    }
+
+    returnToMenuBtn.textContent = 'Return to Menu';
+    returnToMenuBtn.className = 'button';
+    saveGameSelection.appendChild(returnToMenuBtn);
+
+    function fetchSaveGames() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            return Promise.reject('No token found');
+        }
+
+        return fetch('/get-games', {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
-
-            const response = await fetch('/get-games', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-
+        })
+        .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch saved games');
             }
-
-            const data = await response.json();
+            return response.json();
+        })
+        .then(data => {
             saveGames = data.games.map(game => ({
                 ...game,
                 date: new Date(game.date)
-            }));
-            saveGames.sort((a, b) => b.date - a.date); // Sort by date, newest first
+            })).sort((a, b) => b.date - a.date);
             displaySaveGames();
-        } catch (error) {
-            console.error('Error fetching saved games:', error);
-        }
+        })
+        .catch(error => console.error('Error fetching saved games:', error));
     }
 
-    // Format date for display
     function formatDateString(date) {
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -51,27 +64,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Create a card for a save game
     function createSaveGameCard(game, index) {
         const card = document.createElement('div');
         card.className = 'save-game-card';
-        if (game.coins === -1) {
-            game.coins = Infinity;
-        }
+        card.dataset = {
+            gameId: game.id,
+            gridSize: game.gridSize,
+            buildingsGrid: JSON.stringify(game.buildingsGrid),
+            points: game.points,
+            coins: game.coins === -1 ? Infinity : game.coins,
+            turnNumber: game.turnNumber,
+            gameMode: game.gameMode
+        };
 
-        // Add data attributes for the game data
-        card.dataset.gameId = game.id;
-        card.dataset.gridSize = game.gridSize;
-        card.dataset.buildingsGrid = JSON.stringify(game.buildingsGrid);
-        card.dataset.points = game.points;
-        card.dataset.coins = game.coins;
-        card.dataset.turnNumber = game.turnNumber;
-        card.dataset.gameMode = game.gameMode;
-
-        // Create a canvas element to render the grid
         const canvas = document.createElement('canvas');
-        canvas.width = 200; // Fixed width
-        canvas.height = 200; // Adjust height to fit card size
+        canvas.width = 200;
+        canvas.height = 200;
         renderGridOnCanvas(canvas, game.buildingsGrid, game.gridSize);
 
         card.innerHTML = `
@@ -85,57 +93,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>Turn Number: ${game.turnNumber}</p>
             </div>
         `;
-        card.querySelector('.card-image').appendChild(canvas); // Append canvas to card-image div
-        card.addEventListener('click', () => loadSaveGame(card)); // Pass the card itself to loadSaveGame
+        card.querySelector('.card-image').appendChild(canvas);
+        card.addEventListener('click', () => loadSaveGame(card));
         return card;
     }
 
-    // Render the grid state on a canvas
     function renderGridOnCanvas(canvas, buildingsGrid, gridSize) {
         const ctx = canvas.getContext('2d');
-        const cellSize = canvas.width / gridSize; // Dynamically calculate cell size to fit canvas
-
-        // Clear the canvas
+        const cellSize = canvas.width / gridSize;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw the grid
-        ctx.strokeStyle = 'white'; // Set grid lines color to white
-        ctx.lineWidth = 1; // Set line width for better visibility
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 1;
 
         for (let row = 0; row < gridSize; row++) {
             for (let col = 0; col < gridSize; col++) {
                 const buildingType = buildingsGrid[row][col];
-                ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize); // Draw grid cell borders
-
+                ctx.strokeRect(col * cellSize, row * cellSize, cellSize, cellSize);
                 if (buildingType) {
-                    ctx.font = `${cellSize * 0.8}px Arial`; // Set font size relative to cell size
+                    ctx.font = `${cellSize * 0.8}px Arial`;
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    ctx.fillStyle = 'white'; // Text color set to white
-
-                    const centerX = col * cellSize + cellSize / 2;
-                    const centerY = row * cellSize + cellSize / 2;
-                    ctx.fillText(getBuildingIcon(buildingType), centerX, centerY);
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(getBuildingIcon(buildingType), col * cellSize + cellSize / 2, row * cellSize + cellSize / 2);
                 }
             }
         }
     }
 
-    // Get icon for building types
     function getBuildingIcon(buildingType) {
-        switch (buildingType) {
-            case 'residential': return 'R';
-            case 'industry': return 'I';
-            case 'commercial': return 'C';
-            case 'park': return 'O';
-            case 'road': return '*';
-            default: return '';
-        }
+        const icons = {
+            residential: 'R',
+            industry: 'I',
+            commercial: 'C',
+            park: 'O',
+            road: '*'
+        };
+        return icons[buildingType] || '';
     }
 
-    // Load a save game
     function loadSaveGame(card) {
-        console.log(card);
         const gameData = {
             gameId: card.dataset.gameId,
             gridSize: card.dataset.gridSize,
@@ -145,18 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
             turnNumber: card.dataset.turnNumber,
             gameMode: card.dataset.gameMode
         };
-
         localStorage.setItem('loadedGame', JSON.stringify(gameData));
-        console.log('Loaded game data:', gameData);
-
-        if (gameData.gameMode === 'arcade') {
-            window.location.href = '../html/arcade-game.html';
-        } else {
-            window.location.href = '../html/freePlay.html';
-        }
+        const gamePage = gameData.gameMode === 'arcade' ? '../html/arcade-game.html' : '../html/freePlay.html';
+        window.location.href = gamePage;
     }
 
-    // Create a placeholder card when there's no save game
     function createPlaceholderCard() {
         const card = document.createElement('div');
         card.className = 'save-game-card placeholder';
@@ -174,7 +163,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
 
-    // Display save games
     function displaySaveGames() {
         saveGameContainer.innerHTML = '';
         const startIndex = currentPage * gamesPerPage;
@@ -187,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
             saveGameContainer.appendChild(card);
         });
 
-        for (let i = visibleGames.length; i < gamesPerPage; i++) {
+        while (saveGameContainer.childElementCount < gamesPerPage) {
             const placeholderCard = createPlaceholderCard();
             saveGameContainer.appendChild(placeholderCard);
         }
@@ -196,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
         nextPageBtn.disabled = endIndex >= saveGames.length;
     }
 
-    // Show save game selection screen
     function showSaveGameSelection() {
         mainMenu.classList.add('hidden');
         saveGameSelection.classList.remove('hidden');
@@ -204,31 +191,17 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchSaveGames();
     }
 
-    // Hide save game selection screen
     function hideSaveGameSelection() {
         saveGameSelection.classList.add('hidden');
         mainMenu.classList.remove('hidden');
         mainMenu.style.animation = 'slideIn 0.5s ease-out';
     }
 
-    
-
-    // Main event listener
-    const loginButton = document.getElementById('login');
-    const exitGameButton = document.getElementById('exit-game');
-
-    // Check if the user is already logged in
-    if (localStorage.getItem('token')) {
-        setLoggedInState();
-    }
-
-    loginButton.addEventListener('click', handleLoginLogout);
-
     function handleLoginLogout() {
         if (localStorage.getItem('token')) {
             handleLogout();
         } else {
-            window.location.href = '../html/lgin.html'; // Adjust the path to your login page
+            window.location.href = '../html/login.html';
         }
     }
 
@@ -246,55 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
         loginButton.textContent = 'Login';
     }
 
-    exitGameButton.addEventListener('click', () => {
-        // Add your exit game logic here
-        alert('Exiting game...');
-    });
-
-    // Button elements
-    const newArcadeGameBtn = document.getElementById('new-arcade-game');
-    const newFreePlayGameBtn = document.getElementById('new-free-play-game');
-    const loadSavedGameBtn = document.getElementById('load-saved-game');
-    const displayHighScoresBtn = document.getElementById('display-high-scores');
-
-    // Event listeners for main menu buttons
-    newArcadeGameBtn.addEventListener('click', () => handleAuthenticatedAction('arcade'));
-    newFreePlayGameBtn.addEventListener('click', () => handleAuthenticatedAction('freeplay'));
-    loadSavedGameBtn.addEventListener('click', () => handleAuthenticatedAction('load'));
-    displayHighScoresBtn.addEventListener('click', () => handleAuthenticatedAction('highscores'));
-
-    // Event listeners for pagination
-    prevPageBtn.addEventListener('click', () => {
-        if (currentPage > 0) {
-            currentPage--;
-            displaySaveGames();
-        }
-    });
-
-    nextPageBtn.addEventListener('click', () => {
-        if ((currentPage + 1) * gamesPerPage < saveGames.length) {
-            currentPage++;
-            displaySaveGames();
-        }
-    });
-
-    // Add a return to menu button
-    const returnToMenuBtn = document.createElement('button');
-    returnToMenuBtn.textContent = 'Return to Menu';
-    returnToMenuBtn.className = 'button';
-    returnToMenuBtn.addEventListener('click', hideSaveGameSelection);
-    saveGameSelection.appendChild(returnToMenuBtn);
-
-    // Authentication check
     function checkAuth() {
-        const token = localStorage.getItem('token');
-        return !!token;
+        return !!localStorage.getItem('token');
     }
 
-    // Handle authenticated actions
     function handleAuthenticatedAction(action) {
         if (checkAuth()) {
-            switch(action) {
+            switch (action) {
                 case 'arcade':
                     window.location.href = '../html/arcade-game.html';
                     break;
@@ -305,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showSaveGameSelection();
                     break;
                 case 'highscores':
-                    alert('Display High Scores placeholder');
+                    window.location.href = '../html/highscores.html';
                     break;
             }
         } else {
@@ -313,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Show authentication alert
     function showAuthAlert() {
         const alertHtml = `
             <div id="auth-alert" style="
@@ -359,23 +289,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Fetch and display games on initial load only if user is authenticated
-    if (checkAuth()) {
-        fetchSaveGames();
-    }
-
-    // Music control
-    document.getElementById('music-control').addEventListener('click', function() {
-        var audio = document.getElementById('background-music');
-        if (audio.paused) {
-            audio.play().then(function() {
-                document.getElementById('music-control').textContent = '🔊';
-            }).catch(function(error) {
-                console.log('Error playing audio:', error);
-            });
-        } else {
-            audio.pause();
-            document.getElementById('music-control').textContent = '🔇';
+    prevPageBtn.addEventListener('click', () => {
+        if (currentPage > 0) {
+            currentPage--;
+            displaySaveGames();
         }
     });
+
+    nextPageBtn.addEventListener('click', () => {
+        if ((currentPage + 1) * gamesPerPage < saveGames.length) {
+            currentPage++;
+            displaySaveGames();
+        }
+    });
+
+    loginButton.addEventListener('click', handleLoginLogout);
+    exitGameButton.addEventListener('click', () => alert('Exiting game...'));
+    newArcadeGameBtn.addEventListener('click', () => handleAuthenticatedAction('arcade'));
+    newFreePlayGameBtn.addEventListener('click', () => handleAuthenticatedAction('freeplay'));
+    loadSavedGameBtn.addEventListener('click', () => handleAuthenticatedAction('load'));
+    displayHighScoresBtn.addEventListener('click', () => handleAuthenticatedAction('highscores'));
+    returnToMenuBtn.addEventListener('click', hideSaveGameSelection);
+
+    // Music control
+    
 });
+
+// index.js

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ngee Ann City - High Scores</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/highscores.css">
+</head>
+<body>
+    <div class="container">
+        <div id="high-scores">
+            <h1>High Scores</h1>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search by name...">
+                <button id="search-button" class="button">Search</button>
+            </div>
+            <div id="high-scores-container"></div>
+            <div class="navigation-buttons">
+                <button id="prev-page" class="nav-button">Previous</button>
+                <button id="next-page" class="nav-button">Next</button>
+            </div>
+            <button id="return-to-menu" class="button">Return to Menu</button>
+        </div>
+    </div>
+
+    <button id="music-control" class="music-control">🔇</button>
+   
+    <script src="../js/highscores.js"></script>
+    <script type="module" src="../js/music.js"></script>
+</body>
+</html>

@@ -575,16 +575,3 @@ function exitGame() {
     window.location.href = '../html/index.html';
 }
 
-document.getElementById('music-control').addEventListener('click', function() {
-    var audio = document.getElementById('background-music');
-    if (audio.paused) {
-        audio.play().then(function() {
-            document.getElementById('music-control').textContent = '🔊';
-        }).catch(function(error) {
-            console.log('Error playing audio:', error);
-        });
-    } else {
-        audio.pause();
-        document.getElementById('music-control').textContent = '🔇';
-    }
-});
