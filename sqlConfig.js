@@ -1,6 +1,6 @@
 const dbConfig = {
     user: 'game',
-    password: '123',
+    password: '123456',
     server: 'localhost', 
     port: 1433,
     database: 'game_saves',

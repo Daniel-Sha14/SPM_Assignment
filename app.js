@@ -28,8 +28,10 @@ app.get('/', (req, res) => {
 });
 
 app.post('/signup', async (req, res) => {
-    const { username, email, hashedPassword } = req.body;
+    const { username, email, password } = req.body;
     console.log(req.body);
+    let hashedPassword = password;
+    console.log();
 
     if (!username || !email || !hashedPassword) {
         return res.status(400).json({ status: 'error', message: 'All fields are required' });
