@@ -45,3 +45,14 @@ CREATE TABLE UserEvents (
     FOREIGN KEY (EventId) REFERENCES game_saves(id)
 );
 ```
+### 3. Creating the highscores Table
+
+```sql
+CREATE TABLE highscores (
+    userId INT NOT NULL,
+    id INT NOT NULL,
+    PRIMARY KEY (userId, id),
+    FOREIGN KEY (userId) REFERENCES Users(UserId),
+    FOREIGN KEY (id) REFERENCES game_saves(id)
+);
+```
