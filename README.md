@@ -56,3 +56,14 @@ CREATE TABLE highscores (
     FOREIGN KEY (id) REFERENCES game_saves(id)
 );
 ```
+
+
+### Music Credits
+
+**Title:** Nuvole Bianche  
+**Artist:** Ludovico Einaudi  
+**Album:** Una Mattina  
+**Year of Release:** 2004  
+**Link:** [Listen on Spotify](https://open.spotify.com/track/3U4isOIWM3VvDubwSI3y7a)  
+
+This music is used in accordance with fair use guidelines. All rights to this music belong to Ludovico Einaudi and his respective record label. No copyright infringement is intended.

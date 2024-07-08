@@ -1,7 +1,7 @@
 class AudioManager {
     constructor() {
         if (!AudioManager.instance) {
-            this.audio = new Audio('../music/music.mp3');
+            this.audio = new Audio('../music/music2.mp3');
             this.audio.loop = true;
             this.audio.preload = 'auto';
             
