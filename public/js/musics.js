@@ -7,11 +7,14 @@ class AudioManager {
             
             const isMusicPlaying = sessionStorage.getItem('isMusicPlaying') === 'true';
             const currentTime = parseFloat(sessionStorage.getItem('currentTime')) || 0;
+            const playbackSpeed = parseFloat(sessionStorage.getItem('playbackSpeed')) || 1.0;
 
             this.audio.currentTime = currentTime;
+            this.audio.playbackRate = playbackSpeed;
 
             this.audio.addEventListener('loadedmetadata', () => {
                 this.audio.currentTime = currentTime;
+                this.audio.playbackRate = playbackSpeed;
 
                 if (isMusicPlaying) {
                     this.audio.play();
@@ -49,6 +52,15 @@ class AudioManager {
 
     isPlaying() {
         return !this.audio.paused;
+    }
+
+    setPlaybackSpeed(speed) {
+        this.audio.playbackRate = speed;
+        sessionStorage.setItem('playbackSpeed', speed);
+    }
+
+    getPlaybackSpeed() {
+        return this.audio.playbackRate;
     }
 }
 
