@@ -357,7 +357,7 @@ function updateProfitAndUpkeep() {
     let totalUpkeep = 0;
     let totalProfit = 0;
     const gridSquares = document.querySelectorAll('.grid-square');
-    const residentialClusters = new Set();
+    const visitedResidential = new Set();
 
     // Loop through each cell in the grid
     for (let row = 0; row < gridSize; row++) {
@@ -374,16 +374,23 @@ function updateProfitAndUpkeep() {
 
                     // Additional profit from residential buildings connected by roads
                     if (buildingType === 'industry' || buildingType === 'commercial') {
-                        const collectedResidentials = [];
-                        followRoadAndCollectResidentials(row, col, collectedResidentials);
-                        totalProfit += collectedResidentials.length;
+                        const collectedResidentials = new Set();
+                        const surroundings = checkSurroundings(row, col);
+                        surroundings.forEach(surrounding => {
+                            if (surrounding.type === 'road') {
+                                followRoadAndCollectResidentials(surrounding.row, surrounding.col, collectedResidentials);
+                            }
+                        });
+                        totalProfit += collectedResidentials.size;
                     }
 
-                    // Collect clusters of residential buildings
-                    if (buildingType === 'residential') {
+                    // Handle residential clusters
+                    if (buildingType === 'residential' && !visitedResidential.has(`${row},${col}`)) {
                         const cluster = new Set();
                         collectResidentialCluster(row, col, cluster);
-                        cluster.forEach(loc => residentialClusters.add(`${loc.row},${loc.col}`));
+                        cluster.forEach(loc => visitedResidential.add(`${loc.row},${loc.col}`));
+                        totalUpkeep -= upkeep * cluster.size;
+                        totalUpkeep += 1; // Set cluster upkeep to 1
                     }
 
                     // Handle road-specific logic
@@ -397,12 +404,6 @@ function updateProfitAndUpkeep() {
             }
         }
     }
-
-    // Remove additional upkeep for clustered residential buildings
-    residentialClusters.forEach(loc => {
-        const [row, col] = loc.split(',').map(Number);
-        totalUpkeep -= buildings['residential'].upkeep;
-    });
 
     // Update coins with the net profit after upkeep
     coins += (totalProfit - totalUpkeep);
@@ -435,13 +436,9 @@ function collectResidentialCluster(startRow, startCol, cluster) {
     }
 }
 
-/**
- * Follows roads starting from a given cell (row, col) and collects all connected residential buildings.
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @param {Array} collectedResidentials - An array to store the collected residential buildings.
- */
+
+
+
 function followRoadAndCollectResidentials(startRow, startCol, collectedResidentials) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -452,16 +449,105 @@ function followRoadAndCollectResidentials(startRow, startCol, collectedResidenti
         const surroundings = checkSurroundings(row, col);
         for (let i = 0; i < surroundings.length; i++) {
             const s = surroundings[i];
-            if (s.type === 'residential' && !visited.has(`${s.row},${s.col}`)) {
-                collectedResidentials.push(s);
+            if (!visited.has(`${s.row},${s.col}`)) {
+                if (s.type === 'residential') {
+                    collectedResidentials.add(`${s.row},${s.col}`);
+                } else if (s.type === 'road') {
+                    queue.push(s);
+                }
                 visited.add(`${s.row},${s.col}`);
-            } else if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+            }
+        }
+    }
+}
+
+
+
+/**
+ * Checks the four surrounding cells of a given cell (row, col)
+ * and returns their positions and types.
+ *
+ * @param {number} row - The row index of the cell.
+ * @param {number} col - The column index of the cell.
+ * @returns {Array} An array of objects representing the surrounding cells.
+ */
+function checkSurroundings(row, col) {
+    const directions = [
+        { r: -1, c: 0 }, // up
+        { r: 1, c: 0 }, // down
+        { r: 0, c: -1 }, // left
+        { r: 0, c: 1 } // right
+    ];
+
+    const surroundings = [];
+
+    for (let i = 0; i < directions.length; i++) {
+        const newRow = row + directions[i].r;
+        const newCol = col + directions[i].c;
+        if (newRow >= 0 && newRow < gridSize && newCol >= 0 && newCol < gridSize) {
+            surroundings.push({ row: newRow, col: newCol, type: buildingsGrid[newRow][newCol] });
+        }
+    }
+
+    return surroundings;
+}
+
+/**
+ * Counts the number of connected road cells starting from a given cell (row, col).
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @returns {number} The count of connected road cells.
+ */
+function countConnectedRoads(startRow, startCol) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+    let roadCount = 0;
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+        roadCount++;
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'road' && !visited.has(`${s.row},${s.col}`)) {
+                queue.push(s);
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
+    }
+
+    return roadCount;
+}
+
+/**
+ * Collects all adjacent residential buildings starting from a given cell (row, col) and adds them to the cluster.
+ *
+ * @param {number} startRow - The starting row index.
+ * @param {number} startCol - The starting column index.
+ * @param {Set} cluster - A set to store the collected residential buildings.
+ */
+function collectResidentialCluster(startRow, startCol, cluster) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+        cluster.add({ row, col });
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'residential' && !visited.has(`${s.row},${s.col}`)) {
                 queue.push(s);
                 visited.add(`${s.row},${s.col}`);
             }
         }
     }
 }
+
+
 
 function endTurn() {
     updatePoints();
@@ -625,6 +711,7 @@ function countConnectedRoads(startRow, startCol) {
     while (queue.length > 0) {
         const { row, col } = queue.shift();
         roadCount++;
+        console.log(roadCount);
 
         const surroundings = checkSurroundings(row, col);
         for (let i = 0; i < surroundings.length; i++) {
@@ -638,7 +725,10 @@ function countConnectedRoads(startRow, startCol) {
 
     return roadCount;
 }
-
+function hasDirectRoad(row, col) {
+    const surroundings = checkSurroundings(row, col);
+    return surroundings.some(s => s.type === 'road');
+}
 /**
  * Follows roads starting from a given cell (row, col) and collects all connected buildings.
  *
