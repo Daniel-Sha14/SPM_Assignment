@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let saveGames = [];
     let currentPage = 0;
-    const gamesPerPage = 5;
+    const gamesPerPage = 4;
 
     // Initial state setup
     if (localStorage.getItem('token')) {
@@ -78,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(card.dataset.buildingsGrid);
         const canvas = document.createElement('canvas');
-        canvas.width = 200;
-        canvas.height = 200;
+        canvas.width = 300;
+        canvas.height = 300;
         renderGridOnCanvas(canvas, game.buildingsGrid, game.gridSize);
 
         card.innerHTML = `

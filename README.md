@@ -34,7 +34,7 @@ CREATE TABLE Users (
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 ```
-### 3. Creating the UserEvents Table
+### 3. Creating the UserSaves Table
 
 ```sql
 CREATE TABLE UserEvents (

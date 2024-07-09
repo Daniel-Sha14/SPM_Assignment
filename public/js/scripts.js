@@ -1,4 +1,4 @@
-function saveGame() {
+async function saveGame() {
     const token = localStorage.getItem('token');
     if (!token) {
         alert('You need to be logged in to save the game.');
@@ -14,27 +14,29 @@ function saveGame() {
         gameMode: 'arcade'
     };
 
-    fetch('/save-game', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(gameState)
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+        const response = await fetch('/save-game', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(gameState)
+        });
+
+        const data = await response.json();
         if (data.status === 'success') {
             alert('Game saved successfully!');
+            return data.gameId;  // Assume the API returns the saved game ID
         } else {
             alert('Error saving game: ' + data.message);
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
         alert('Error saving game');
-    });
+    }
 }
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('grid');
@@ -224,6 +226,11 @@ function updateSelectedBuildingsUI() {
     if (selectedBuildings.length > 0) {
         selectBuilding(selectedBuildings[0]);
     }
+    if (coins <= 0) {
+        setTimeout(() => {
+        gameOver();
+        }, 300);
+    }
 }
 
 function highlightValidCells() {
@@ -359,7 +366,6 @@ function updateProfitAndUpkeep() {
     const gridSquares = document.querySelectorAll('.grid-square');
     const visitedResidential = new Set();
 
-    // Loop through each cell in the grid
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
             const index = row * gridSize + col;
@@ -405,10 +411,12 @@ function updateProfitAndUpkeep() {
         }
     }
 
-    // Update coins with the net profit after upkeep
     coins += (totalProfit - totalUpkeep);
     updateScoreboard();
+
+    
 }
+
 
 /**
  * Collects all adjacent residential buildings starting from a given cell (row, col) and adds them to the cluster.
@@ -559,6 +567,8 @@ function endTurn() {
     // Get new buildings and update UI
     selectedBuildings = getNewBuildings();
     updateSelectedBuildingsUI();
+
+    
 }
 
 function updatePoints() {
@@ -799,5 +809,71 @@ function calculateBuildingPoints(buildingType, surroundingBuildings, originalRow
 function exitGame() {
     window.location.href = '../html/index.html';
 }
+
+async function gameOver() {
+    alert('Game Over!');
+
+    try {
+        const response = await fetch('/get-high-scores', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            const highScores = data.highScores;
+            const lowestHighScore = highScores.length > 0 ? highScores[highScores.length - 1].score : 0;
+
+            if (points > lowestHighScore || highScores.length < 100) {
+                const saveHighScore = confirm('Congratulations! You achieved a high score. Do you want to save your high score?');
+
+                if (saveHighScore) {
+                    const savedGameId = await saveGame();
+                    if (savedGameId) {
+                        await saveHighScoreToServer(savedGameId);
+                        alert('High score saved successfully!');
+                    }
+                }
+            }
+        } else {
+            alert('Error fetching high scores: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error checking high scores');
+    }
+}
+
+async function saveHighScoreToServer(savedGameId) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You need to be logged in to save the high score.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/create-high-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ gameId: savedGameId })
+        });
+
+        const data = await response.json();
+        if (data.status !== 'success') {
+            alert('Error saving high score: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error saving high score');
+    }
+}
+
 
 window.onload = initializeGame;

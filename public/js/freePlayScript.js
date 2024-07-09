@@ -22,6 +22,8 @@ let gridSize = 5;
 let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
 let buildMode = false; // Track if build mode is active
 const maxGridSize = 95;
+let consecutiveDeficitTurns = 0;
+const maxDeficitTurns = 20; // Maximum consecutive deficit turns before game over
 
 function initializeGrid(size) {
     const grid = document.getElementById('grid');
@@ -296,7 +298,7 @@ function endTurn() {
     updateTurnCounter();
     removeBuildHighlights(); // Remove highlights at the end of each turn
     updatePoints(); // Calculate points at the end of each turn
-    // updateProfitAndUpkeep(); // Uncomment or define this function if needed
+    updateProfitAndUpkeep(); // Update coins and check for deficit turns
 }
 
 /**
@@ -568,5 +570,80 @@ function saveGame() {
 }
 
 function exitGame() {
+    window.location.href = '../html/index.html';
+}
+
+function updateProfitAndUpkeep() {
+    let totalUpkeep = 0;
+    let totalProfit = 0;
+    const gridSquares = document.querySelectorAll('.grid-square');
+    const visitedResidential = new Set();
+
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            const index = row * gridSize + col;
+            const square = gridSquares[index];
+            if (square.classList.contains('built')) {
+                const buildingType = buildingsGrid[row][col];
+                if (buildingType) {
+                    const { upkeep, profit } = buildings[buildingType];
+
+                    totalUpkeep += upkeep;
+                    totalProfit += profit;
+
+                    // Additional profit from residential buildings connected by roads
+                    if (buildingType === 'industry' || buildingType === 'commercial') {
+                        const collectedResidentials = new Set();
+                        const surroundings = checkSurroundings(row, col);
+                        surroundings.forEach(surrounding => {
+                            if (surrounding.type === 'road') {
+                                followRoadAndCollectResidentials(surrounding.row, surrounding.col, collectedResidentials);
+                            }
+                        });
+                        totalProfit += collectedResidentials.size;
+                    }
+
+                    // Handle residential clusters
+                    if (buildingType === 'residential' && !visitedResidential.has(`${row},${col}`)) {
+                        const cluster = new Set();
+                        collectResidentialCluster(row, col, cluster);
+                        cluster.forEach(loc => visitedResidential.add(`${loc.row},${loc.col}`));
+                        totalUpkeep -= upkeep * cluster.size;
+                        totalUpkeep += 1; // Set cluster upkeep to 1
+                    }
+
+                    // Handle road-specific logic
+                    if (buildingType === 'road') {
+                        const roadCount = countConnectedRoads(row, col);
+                        if (roadCount > 1) {
+                            totalUpkeep -= upkeep; // Remove upkeep if road is connected
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    const netProfit = totalProfit - totalUpkeep;
+    console.log(netProfit);
+    updateScoreboard();
+
+    if (netProfit < 0) {
+        consecutiveDeficitTurns++;
+    } else {
+        consecutiveDeficitTurns = 0;
+    }
+
+    if (consecutiveDeficitTurns >= maxDeficitTurns) {
+        setTimeout(() => {
+        alert('Game Over! You have had a deficit for 20 consecutive turns.');
+        endGame();
+        }, 500);
+    }
+}
+
+
+function endGame() {
+    alert('Game Over! Returning to the main menu.');
     window.location.href = '../html/index.html';
 }

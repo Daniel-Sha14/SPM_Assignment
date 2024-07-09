@@ -8,20 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let highScores = [];
     let currentPage = 0;
-    const scoresPerPage = 3; // Adjusted to fit within the max height of 400px
-
-    const sampleHighScores = [
-        { playerName: 'Alice', score: 1500, turnNumber: 10, date: '2023-07-01T12:34:56Z' },
-        { playerName: 'Bob', score: 1400, turnNumber: 12, date: '2023-07-02T12:34:56Z' },
-        { playerName: 'Charlie', score: 1300, turnNumber: 14, date: '2023-07-03T12:34:56Z' },
-        { playerName: 'Dave', score: 1200, turnNumber: 16, date: '2023-07-04T12:34:56Z' },
-        { playerName: 'Eve', score: 1100, turnNumber: 18, date: '2023-07-05T12:34:56Z' },
-        { playerName: 'Frank', score: 1000, turnNumber: 20, date: '2023-07-06T12:34:56Z' },
-        { playerName: 'Grace', score: 900, turnNumber: 22, date: '2023-07-07T12:34:56Z' },
-        { playerName: 'Heidi', score: 800, turnNumber: 24, date: '2023-07-08T12:34:56Z' },
-        { playerName: 'Ivan', score: 700, turnNumber: 26, date: '2023-07-09T12:34:56Z' },
-        { playerName: 'Judy', score: 600, turnNumber: 28, date: '2023-07-10T12:34:56Z' }
-    ];
+    const scoresPerPage = 3; 
 
     function setupEventListeners() {
         prevPageBtn.addEventListener('click', handlePrevPage);
@@ -38,9 +25,32 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.removeEventListener('keypress', handleSearchKeypress);
         returnToMenuBtn.removeEventListener('click', handleReturnToMenu);
     }
-    highScores = sampleHighScores
-    
-    displayHighScores();
+
+    async function fetchHighScores() {
+        try {
+            const response = await fetch('/get-high-scores', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (data.status === 'success') {
+                highScores = data.highScores;
+                displayHighScores();
+            } else {
+                alert('Error fetching high scores: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error fetching high scores');
+        }
+    }
+
+    fetchHighScores(); // Fetch high scores on page load
 
     function displayHighScores(filteredScores = null) {
         const scores = filteredScores || highScores;
@@ -107,5 +117,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     setupEventListeners();
-    
 });

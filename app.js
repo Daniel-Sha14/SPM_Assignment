@@ -147,6 +147,7 @@ app.post('/save-game', verifyToken, async (req, res) => {
 
             const gameId = insertGameSaveResult.recordset[0].id;
 
+            console.log('Game ID:', gameId);
             const insertUserEventQuery = `
                 INSERT INTO UserEvents (UserId, EventId)
                 VALUES (@userId, @eventId)
@@ -159,7 +160,7 @@ app.post('/save-game', verifyToken, async (req, res) => {
 
             await transaction.commit();
 
-            res.status(200).json({ status: 'success', message: 'Game saved successfully' });
+            res.status(200).json({ status: 'success', message: 'Game saved successfully', gameId });
         } catch (err) {
             await transaction.rollback();
             res.status(500).json({ status: 'error', message: 'Error saving game' });
@@ -241,6 +242,48 @@ app.get('/get-high-scores', verifyToken, async (req, res) => {
         console.error('Error retrieving high scores:', err);
     }
 });
+
+app.post('/create-high-score', verifyToken, async (req, res) => {
+    const { gameId } = req.body;
+
+    if (!gameId) {
+        return res.status(400).json({ status: 'error', message: 'Game ID is required' });
+    }
+
+    try {
+        // Check if the game save exists
+        const gameSaveQuery = `
+            SELECT id
+            FROM game_saves
+            WHERE id = @gameId
+        `;
+
+        const request = new sql.Request();
+        request.input('gameId', sql.Int, gameId);
+
+        const gameSaveResult = await request.query(gameSaveQuery);
+
+        if (gameSaveResult.recordset.length === 0) {
+            return res.status(404).json({ status: 'error', message: 'Game save not found' });
+        }
+
+        // Insert the high score
+        const insertHighScoreQuery = `
+            INSERT INTO highscores (userId, id)
+            VALUES (@userId, @gameId)
+        `;
+
+        await request
+            .input('userId', sql.Int, req.userId)
+            .query(insertHighScoreQuery);
+
+        res.status(200).json({ status: 'success', message: 'High score created successfully' });
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
+        console.error('Internal server error:', err);
+    }
+});
+
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
