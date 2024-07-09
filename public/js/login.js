@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (result.status === 'success') {
                 alert(isLogin ? 'Login successful' : 'Signup successful');
                 localStorage.setItem('token', result.token);
-                window.location.href = '../html/index.html'; // Redirect to main page
+                window.location.href = '../html/index.html';
             } else {
                 alert(isLogin ? 'Login failed: ' : 'Signup failed: ' + result.message);
             }
@@ -79,5 +79,5 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '../html/index.html';
     });
 
-    updateFormState(); // Set initial form state
+    updateFormState(); 
 });

@@ -24,7 +24,7 @@ class AudioManager {
             });
 
             this.audio.addEventListener('timeupdate', () => {
-                sessionStorage.setItem('currentTime', this.audio.currentTime);
+                sessionStorage.setItem('currentTime', this.audio.currentTime.toFixed(20));
             });
 
             AudioManager.instance = this;
