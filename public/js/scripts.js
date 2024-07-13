@@ -26,7 +26,8 @@ async function saveGame() {
 
         const data = await response.json();
         if (data.status === 'success') {
-            alert('Game saved successfully!');
+            //alert('Game saved successfully!');
+            showSavedGameModal();
             return data.gameId;  // Assume the API returns the saved game ID
         } else {
             alert('Error saving game: ' + data.message);
@@ -810,8 +811,49 @@ function exitGame() {
     window.location.href = '../html/index.html';
 }
 
+function showGameOverModal() {
+    return new Promise((resolve) => {
+      $('#gameOverModal').modal('show');
+      $('#continueBtn').on('click', function () {
+        $('#gameOverModal').modal('hide');
+      });
+      $('#gameOverModal').on('hidden.bs.modal', function () {
+        resolve();
+      });
+    });
+  }
+
+async function showSavedGameModal() {
+    $('#savedGame').modal('show');
+    $('#continueBtn2').on('click', function () {
+        $('#savedGame').modal('hide');
+      });
+      $('#savedGame').on('hidden.bs.modal', function () {
+        resolve();
+      });
+    
+  }
+
+// async function showHighscoreSavedModal() {
+//     $('#highscoreSaved').modal('show');
+//   }
+
+function showHighScoreSaveModal() {
+    return new Promise((resolve) => {
+      $('#highScoreSaveModal').modal('show');
+      $('#saveHighScoreBtn').on('click', function () {
+        $('#highScoreSaveModal').modal('hide');
+        resolve(true);
+      });
+      $('#highScoreSaveModal').on('hidden.bs.modal', function () {
+        resolve(false);
+      });
+    });
+  }
+
 async function gameOver() {
-    alert('Game Over!');
+    //alert('Game Over!');
+    await showGameOverModal();
 
     try {
         const response = await fetch('/get-high-scores', {
@@ -829,23 +871,29 @@ async function gameOver() {
             const lowestHighScore = highScores.length > 0 ? highScores[highScores.length - 1].score : 0;
 
             if (points > lowestHighScore || highScores.length < 100) {
-                const saveHighScore = confirm('Congratulations! You achieved a high score. Do you want to save your high score?');
+                //const saveHighScore = confirm('Congratulations! You achieved a high score. Do you want to save your high score?');
+                const saveHighScore = await showHighScoreSaveModal();
 
                 if (saveHighScore) {
                     const savedGameId = await saveGame();
                     if (savedGameId) {
                         await saveHighScoreToServer(savedGameId);
-                        alert('High score saved successfully!');
+                        //alert('High score saved successfully!');
+                        //showHighscoreSavedModal();
                     }
                 }
             }
         } else {
             alert('Error fetching high scores: ' + data.message);
         }
+        
     } catch (error) {
         console.error('Error:', error);
         alert('Error checking high scores');
     }
+    setTimeout(function () {
+        window.location.href = '/';
+      }, 3000);
 }
 
 async function saveHighScoreToServer(savedGameId) {
