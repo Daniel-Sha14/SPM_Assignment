@@ -8,27 +8,27 @@ document.addEventListener('DOMContentLoaded', () => {
         coins = gameState.coins;
         turnNumber = gameState.turnNumber;
         gameMode = gameState.gameMode;
-        localStorage.removeItem('loadedGame'); // Clear the loaded game from localStorage
+        localStorage.removeItem('loadedGame'); 
 
-        initializeGrid(gridSize); // Initialize the grid with the correct size
-        initializeGame(); // Initialize the game here to ensure the initial buildings are selected
-    } else {
-        initializeGrid(gridSize); // Start with a 5x5 grid
-        initializeGame(); // Initialize the game here to ensure the initial buildings are selected
+        initializeGrid(gridSize); 
+        initializeGame(); 
+    } else{ ;
+        initializeGrid(gridSize); 
+        initializeGame(); 
     }
 });
 
 let gridSize = 5;
 let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
-let buildMode = false; // Track if build mode is active
+let buildMode = false; 
 const maxGridSize = 95;
 let consecutiveDeficitTurns = 0;
-const maxDeficitTurns = 20; // Maximum consecutive deficit turns before game over
+const maxDeficitTurns = 20; 
 
 function initializeGrid(size) {
     const grid = document.getElementById('grid');
-    grid.innerHTML = ''; // Clear the grid
-    grid.style.gridTemplateColumns = `repeat(${size}, 50px)`; // Set each cell to be 50px by 50px
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = `repeat(${size}, 50px)`; 
     grid.style.gridTemplateRows = `repeat(${size}, 50px)`; 
 
     const fragment = document.createDocumentFragment();
@@ -49,14 +49,14 @@ function initializeGrid(size) {
 
     grid.appendChild(fragment);
 
-    // Adjust platform size based on grid size
+  
     const platform = document.querySelector('.platform');
-    const platformSize = size * 52; // 50px cell size + 2px gap
+    const platformSize = size * 52; 
     platform.style.width = `${platformSize}px`;
     platform.style.height = `${platformSize}px`;
 
-    // Use event delegation for better performance
-    grid.removeEventListener('click', handleGridClick); // Remove previous event listener if any
+    
+    grid.removeEventListener('click', handleGridClick); 
     grid.addEventListener('click', handleGridClick);
 }
 
@@ -80,12 +80,12 @@ function expandGrid() {
         return;
     }
 
-    const newGridSize = Math.min(gridSize + 10, maxGridSize); // Ensure grid size doesn't exceed maxGridSize
+    const newGridSize = Math.min(gridSize + 10, maxGridSize); 
     const offset = Math.floor((newGridSize - gridSize) / 2);
 
     const newBuildingsGrid = Array.from({ length: newGridSize }, () => Array(newGridSize).fill(null));
 
-    // Copy old grid to the new center
+    
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
             newBuildingsGrid[i + offset][j + offset] = buildingsGrid[i][j];
@@ -107,25 +107,24 @@ function placeBuilding(row, col, square) {
             firstBuildingPlaced = true;
         }
 
-        // Check if placed on border to trigger expansion
+       
         if (row === 0 || col === 0 || row === gridSize - 1 || col === gridSize - 1) {
             expandGrid();
         }
 
-        // Remove highlight from all cells
+      
         document.querySelectorAll('.grid-square').forEach(square => {
             square.classList.remove('highlight');
         });
 
-        // Update selected buildings for next turn
+      
         const remainingBuilding = selectedBuildings.find(b => b !== selectedBuilding);
         const newBuilding = getRandomBuilding(remainingBuilding);
         selectedBuildings = [selectedBuilding, newBuilding];
 
-        // Update the UI for new buildings
         updateSelectedBuildingsUI();
 
-        // End turn and update coins, points, and turn counter
+       
         endTurn();
     }
 }
@@ -166,7 +165,7 @@ const buildings = {
 let selectedBuilding = null;
 let selectedBuildings = [];
 let points = 0;
-let coins = Infinity; // Unlimited coins for Free Play mode
+let coins = Infinity; 
 let turnNumber = 1;
 let firstBuildingPlaced = false;
 let demolishMode = false;
@@ -181,7 +180,7 @@ function updateTurnCounter() {
 }
 
 function selectBuilding(buildingType) {
-    // Enable selecting any building type
+
     document.querySelectorAll('.building').forEach(building => {
         building.classList.remove('selected');
     });
@@ -232,14 +231,14 @@ function highlightValidCells() {
 }
 
 function isValidPlacement(row, col) {
-    return !buildingsGrid[row][col]; // Valid placement if the cell is not occupied
+    return !buildingsGrid[row][col]; 
 }
 
 function buildStructure() {
     if (selectedBuilding) {
-        demolishMode = false; // Exit demolish mode
-        buildMode = true; // Enter build mode
-        removeDemolishHighlights(); // Clear any demolish highlights when entering build mode
+        demolishMode = false; 
+        buildMode = true; 
+        removeDemolishHighlights(); 
         highlightValidCells();
     } else {
         alert('Please select a building type first.');
@@ -248,9 +247,9 @@ function buildStructure() {
 
 function enterDemolishMode() {
     demolishMode = true;
-    buildMode = false; // Exit build mode when entering demolish mode
-    selectedBuilding = null; // Clear selected building when entering demolish mode
-    removeBuildHighlights(); // Clear any build highlights when entering demolish mode
+    buildMode = false; 
+    selectedBuilding = null;
+    removeBuildHighlights(); 
     document.querySelectorAll('.building').forEach(building => {
         building.classList.remove('selected');
     });
@@ -293,22 +292,14 @@ function removeBuildHighlights() {
 }
 
 function endTurn() {
-    buildMode = false; // Exit build mode at the end of each turn
+    buildMode = false; 
     turnNumber += 1;
     updateTurnCounter();
-    removeBuildHighlights(); // Remove highlights at the end of each turn
-    updatePoints(); // Calculate points at the end of each turn
-    updateProfitAndUpkeep(); // Update coins and check for deficit turns
+    removeBuildHighlights(); 
+    updatePoints(); 
+    updateProfitAndUpkeep(); 
 }
 
-/**
- * Checks the four surrounding cells of a given cell (row, col)
- * and returns their positions and types.
- *
- * @param {number} row - The row index of the cell.
- * @param {number} col - The column index of the cell.
- * @returns {Array} An array of objects representing the surrounding cells.
- */
 function checkSurroundings(row, col) {
     const directions = [
         { r: -1, c: 0 }, // up
@@ -330,13 +321,7 @@ function checkSurroundings(row, col) {
     return surroundings;
 }
 
-/**
- * Calculates the points for a building at a given cell (row, col) based on its type and surroundings.
- *
- * @param {number} row - The row index of the cell.
- * @param {number} col - The column index of the cell.
- * @returns {number} The calculated points for the building at the given cell.
- */
+
 function calculatePoints(row, col) {
     const buildingType = buildingsGrid[row][col];
     if (!buildingType) return 0;
@@ -345,14 +330,14 @@ function calculatePoints(row, col) {
     let points = 0;
 
     if (buildingType === 'residential') {
-        // Check if there is an adjacent industry
+      
         for (let i = 0; i < surroundings.length; i++) {
             const s = surroundings[i];
             if (s.type === 'industry') {
                 return 1;
             }
         }
-        // Check if there is a road nearby
+       
         let hasRoad = false;
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -362,7 +347,6 @@ function calculatePoints(row, col) {
         }
         if (!hasRoad) return 0;
         
-        // Follow roads and collect connected buildings
         const collectedBuildings = [];
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -372,7 +356,7 @@ function calculatePoints(row, col) {
         points = calculateBuildingPoints(buildingType, collectedBuildings, row, col);
         return points;
     } else if (buildingType === 'industry') {
-        // Count all industries in the grid
+       
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
                 if (buildingsGrid[i][j] === 'industry') {
@@ -382,7 +366,7 @@ function calculatePoints(row, col) {
         }
         return points;
     } else if (buildingType === 'road') {
-        // Check if there is a road nearby
+        
         let hasRoad = false;
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -392,11 +376,11 @@ function calculatePoints(row, col) {
         }
         if (!hasRoad) return 0;
 
-        // Count all connected roads
+        
         const roadCount = countConnectedRoads(row, col);
         return roadCount;
     } else if (buildingType === 'commercial' || buildingType === 'park') {
-        // Check if there is a road nearby
+        
         let hasRoad = false;
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -406,7 +390,7 @@ function calculatePoints(row, col) {
         }
         if (!hasRoad) return 0;
 
-        // Follow roads and collect connected buildings
+       
         const collectedBuildings = [];
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -420,13 +404,7 @@ function calculatePoints(row, col) {
     return points;
 }
 
-/**
- * Counts all connected road cells starting from a given cell (row, col).
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @returns {number} The count of all connected road cells.
- */
+
 function countConnectedRoads(startRow, startCol) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -449,13 +427,7 @@ function countConnectedRoads(startRow, startCol) {
     return roadCount;
 }
 
-/**
- * Follows roads starting from a given cell (row, col) and collects all connected buildings.
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @param {Array} collectedBuildings - An array to store the collected buildings.
- */
+
 function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings, originalRow, originalCol) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -478,13 +450,6 @@ function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings, o
     }
 }
 
-/**
- * Calculates points for a building based on its type and the types of collected surrounding buildings.
- *
- * @param {string} buildingType - The type of the building.
- * @param {Array} surroundingBuildings - An array of types of the collected surrounding buildings.
- * @returns {number} The calculated points for the building.
- */
 function calculateBuildingPoints(buildingType, surroundingBuildings, originalRow, originalCol) {
     let points = 0;
 
@@ -516,9 +481,7 @@ function calculateBuildingPoints(buildingType, surroundingBuildings, originalRow
     return points;
 }
 
-/**
- * Updates the points for the entire grid by calculating the points for each cell.
- */
+
 function updatePoints() {
     points = 0;
     for (let row = 0; row < gridSize; row++) {
@@ -591,7 +554,7 @@ function updateProfitAndUpkeep() {
                     totalUpkeep += upkeep;
                     totalProfit += profit;
 
-                    // Additional profit from residential buildings connected by roads
+                    
                     if (buildingType === 'industry' || buildingType === 'commercial') {
                         const collectedResidentials = new Set();
                         const surroundings = checkSurroundings(row, col);
@@ -603,20 +566,20 @@ function updateProfitAndUpkeep() {
                         totalProfit += collectedResidentials.size;
                     }
 
-                    // Handle residential clusters
+                   
                     if (buildingType === 'residential' && !visitedResidential.has(`${row},${col}`)) {
                         const cluster = new Set();
                         collectResidentialCluster(row, col, cluster);
                         cluster.forEach(loc => visitedResidential.add(`${loc.row},${loc.col}`));
                         totalUpkeep -= upkeep * cluster.size;
-                        totalUpkeep += 1; // Set cluster upkeep to 1
+                        totalUpkeep += 1;
                     }
 
                     // Handle road-specific logic
                     if (buildingType === 'road') {
                         const roadCount = countConnectedRoads(row, col);
                         if (roadCount > 1) {
-                            totalUpkeep -= upkeep; // Remove upkeep if road is connected
+                            totalUpkeep -= upkeep; 
                         }
                     }
                 }

@@ -418,13 +418,7 @@ function updateProfitAndUpkeep() {
 }
 
 
-/**
- * Collects all adjacent residential buildings starting from a given cell (row, col) and adds them to the cluster.
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @param {Set} cluster - A set to store the collected residential buildings.
- */
+
 function collectResidentialCluster(startRow, startCol, cluster) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -471,14 +465,7 @@ function followRoadAndCollectResidentials(startRow, startCol, collectedResidenti
 
 
 
-/**
- * Checks the four surrounding cells of a given cell (row, col)
- * and returns their positions and types.
- *
- * @param {number} row - The row index of the cell.
- * @param {number} col - The column index of the cell.
- * @returns {Array} An array of objects representing the surrounding cells.
- */
+
 function checkSurroundings(row, col) {
     const directions = [
         { r: -1, c: 0 }, // up
@@ -500,13 +487,7 @@ function checkSurroundings(row, col) {
     return surroundings;
 }
 
-/**
- * Counts the number of connected road cells starting from a given cell (row, col).
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @returns {number} The count of connected road cells.
- */
+
 function countConnectedRoads(startRow, startCol) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -529,13 +510,7 @@ function countConnectedRoads(startRow, startCol) {
     return roadCount;
 }
 
-/**
- * Collects all adjacent residential buildings starting from a given cell (row, col) and adds them to the cluster.
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @param {Set} cluster - A set to store the collected residential buildings.
- */
+
 function collectResidentialCluster(startRow, startCol, cluster) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -587,14 +562,7 @@ function updatePoints() {
     updateScoreboard();
 }
 
-/**
- * Checks the four surrounding cells of a given cell (row, col)
- * and returns their positions and types.
- *
- * @param {number} row - The row index of the cell.
- * @param {number} col - The column index of the cell.
- * @returns {Array} An array of objects representing the surrounding cells.
- */
+
 function checkSurroundings(row, col) {
     const directions = [
         { r: -1, c: 0 }, // up
@@ -616,13 +584,7 @@ function checkSurroundings(row, col) {
     return surroundings;
 }
 
-/**
- * Calculates the points for a building at a given cell (row, col) based on its type and surroundings.
- *
- * @param {number} row - The row index of the cell.
- * @param {number} col - The column index of the cell.
- * @returns {number} The calculated points for the building at the given cell.
- */
+
 function calculatePoints(row, col) {
     const buildingType = buildingsGrid[row][col];
     if (!buildingType) return 0;
@@ -706,13 +668,7 @@ function calculatePoints(row, col) {
     return points;
 }
 
-/**
- * Follows roads starting from a given cell (row, col) and collects all connected buildings.
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @param {Array} collectedBuildings - An array to store the collected buildings.
- */
+
 function countConnectedRoads(startRow, startCol) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -739,13 +695,7 @@ function hasDirectRoad(row, col) {
     const surroundings = checkSurroundings(row, col);
     return surroundings.some(s => s.type === 'road');
 }
-/**
- * Follows roads starting from a given cell (row, col) and collects all connected buildings.
- *
- * @param {number} startRow - The starting row index.
- * @param {number} startCol - The starting column index.
- * @param {Array} collectedBuildings - An array to store the collected buildings.
- */
+
 function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings, originalRow, originalCol) {
     const queue = [{ row: startRow, col: startCol }];
     const visited = new Set([`${startRow},${startCol}`]);
@@ -768,13 +718,7 @@ function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings, o
     }
 }
 
-/**
- * Calculates points for a building based on its type and the types of collected surrounding buildings.
- *
- * @param {string} buildingType - The type of the building.
- * @param {Array} surroundingBuildings - An array of types of the collected surrounding buildings.
- * @returns {number} The calculated points for the building.
- */
+
 function calculateBuildingPoints(buildingType, surroundingBuildings, originalRow, originalCol) {
     let points = 0;
 

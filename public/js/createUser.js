@@ -14,7 +14,7 @@ $(document).ready(function () {
             "password": contactPassword,
         };
 
-        // First, check if the email already exists in the database
+        
         $.ajax({
             "async": true,
             "crossDomain": true,
@@ -26,14 +26,14 @@ $(document).ready(function () {
                 "cache-control": "no-cache"
             },
             success: function (response) {
-                // Check if the email is already registered
+               
                 let emailExists = response.some(user => user.email === contactEmail);
 
                 if (emailExists) {
                     alert("An account with this email already exists. Please use a different email.");
                     $("#contact-submit").prop("disabled", false);
                 } else {
-                    // Email does not exist, proceed with creating a new user
+                  
                     let settings = {
                         "async": true,
                         "crossDomain": true,
@@ -55,7 +55,7 @@ $(document).ready(function () {
                     $.ajax(settings).done(function (response) {
                         console.log(response);
                         $("#contact-submit").prop("disabled", false);
-                        window.location.href = "../html/login.html"; // Redirect to login.html
+                        window.location.href = "../html/login.html";
                     }).fail(function(jqXHR, textStatus, errorThrown) {
                         console.error("Error:", textStatus, errorThrown);
                         alert("An error occurred while submitting the contact form. Please try again.");
@@ -71,7 +71,7 @@ $(document).ready(function () {
         });
     });
 
-    // Login form submission
+    
     $("#login-form").submit(function (e) {
         e.preventDefault();
 

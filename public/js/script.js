@@ -313,8 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
     displayHighScoresBtn.addEventListener('click', () => handleAuthenticatedAction('highscores'));
     returnToMenuBtn.addEventListener('click', hideSaveGameSelection);
 
-    // Music control
+   
     
 });
 
-// index.js
+
