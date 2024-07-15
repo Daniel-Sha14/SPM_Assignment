@@ -38,6 +38,45 @@ async function saveGame() {
     }
 }
 
+async function saveGame2() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('You need to be logged in to save the game.');
+        return;
+    }
+
+    const gameState = {
+        gridSize: gridSize,
+        buildingsGrid: buildingsGrid,
+        points: points,
+        coins: coins,
+        turnNumber: turnNumber,
+        gameMode: 'arcade'
+    };
+
+    try {
+        const response = await fetch('/save-game2', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(gameState)
+        });
+
+        const data = await response.json();
+        if (data.status === 'success') {
+            //alert('Game saved successfully!');
+            showSavedGameModal();
+            return data.gameId;  // Assume the API returns the saved game ID
+        } else {
+            alert('Error saving game: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error saving game');
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('grid');
@@ -68,9 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadGameState(gameState) {
     gridSize = gameState.gridSize;
     buildingsGrid = gameState.buildingsGrid;
-    points = gameState.points;
-    coins = gameState.coins;
-    turnNumber = gameState.turnNumber;
+    points = parseInt(gameState.points);
+    coins = parseInt(gameState.coins);
+    turnNumber = parseInt(gameState.turnNumber);
     gameMode = gameState.gameMode;
 
     const grid = document.getElementById('grid');
@@ -235,6 +274,7 @@ function updateSelectedBuildingsUI() {
 }
 
 function highlightValidCells() {
+    console.log('s');
     const gridSquares = document.querySelectorAll('.grid-square');
 
     gridSquares.forEach(square => {
@@ -327,8 +367,13 @@ function demolishBuilding(square) {
         const index = Array.from(document.querySelectorAll('.grid-square')).indexOf(square);
         const row = Math.floor(index / gridSize);
         const col = index % gridSize;
-
-        // Remove building
+        const unoccupiedSquares = Array.from(document.querySelectorAll('.grid-square')).filter(square => square.classList.contains('built'));
+        console.log(unoccupiedSquares.length);
+        if (unoccupiedSquares.length == 1) {
+            console.log("hello");
+            firstBuildingPlaced = false;
+        }
+             // Remove building
         square.innerText = '';
         square.classList.remove('built', 'highlight-demolish');
         buildingsGrid[row][col] = null;
@@ -346,7 +391,10 @@ function demolishBuilding(square) {
     } else if (coins <= 0) {
         alert('Not enough coins to demolish a building.');
     }
+
+    
 }
+
 
 // Remove highlight from all cells
 function removeDemolishHighlights() {
@@ -757,46 +805,60 @@ function exitGame() {
 
 function showGameOverModal() {
     return new Promise((resolve) => {
-      $('#gameOverModal').modal('show');
-      $('#continueBtn').on('click', function () {
-        $('#gameOverModal').modal('hide');
-      });
-      $('#gameOverModal').on('hidden.bs.modal', function () {
-        resolve();
-      });
+        $('#gameOverModal').modal('show');
+        $('#continueBtn').on('click', function () {
+            $('#gameOverModal').modal('hide');
+        });
+        $('#gameOverModal').on('hidden.bs.modal', function () {
+            resolve();
+        });
     });
-  }
-
-async function showSavedGameModal() {
+}
+  function showSavedGameModal() {
     $('#savedGame').modal('show');
     $('#continueBtn2').on('click', function () {
         $('#savedGame').modal('hide');
-      });
-      $('#savedGame').on('hidden.bs.modal', function () {
-        resolve();
-      });
-    
-  }
+    });
+}
 
 // async function showHighscoreSavedModal() {
 //     $('#highscoreSaved').modal('show');
 //   }
 
+
+function redirectToHomePage() {
+   
+    window.location.href = '/';
+    
+}
+
+
 function showHighScoreSaveModal() {
     return new Promise((resolve) => {
-      $('#highScoreSaveModal').modal('show');
-      $('#saveHighScoreBtn').on('click', function () {
-        $('#highScoreSaveModal').modal('hide');
-        resolve(true);
-      });
-      $('#highScoreSaveModal').on('hidden.bs.modal', function () {
-        resolve(false);
-      });
+        $('#highScoreSaveModal .modal-body').html(`
+            <p>You have a new high score! Enter your name to save it:</p>
+            <input type="text" class="form-control" id="playerName" placeholder="Your Name" required>
+        `);
+
+        $('#highScoreSaveModal .modal-footer').html(`
+            <button type="button" class="btn btn-primary" id="saveHighScoreBtn">OK</button>
+        `);
+
+        $('#highScoreSaveModal').modal('show');
+
+        $('#saveHighScoreBtn').off('click').on('click', async function () {
+            const playerName = $('#playerName').val();
+            if (playerName) {
+                resolve(playerName); // Resolve the promise with the player's name
+                $('#highScoreSaveModal').modal('hide');
+            } else {
+                alert('Please enter your name.');
+            }
+        });
     });
-  }
+}
 
 async function gameOver() {
-    //alert('Game Over!');
     await showGameOverModal();
 
     try {
@@ -814,16 +876,12 @@ async function gameOver() {
             const highScores = data.highScores;
             const lowestHighScore = highScores.length > 0 ? highScores[highScores.length - 1].score : 0;
 
-            if (points > lowestHighScore || highScores.length < 100) {
-                //const saveHighScore = confirm('Congratulations! You achieved a high score. Do you want to save your high score?');
-                const saveHighScore = await showHighScoreSaveModal();
-
-                if (saveHighScore) {
-                    const savedGameId = await saveGame();
+            if (points > lowestHighScore || highScores.length < 10) {
+                const playerName = await showHighScoreSaveModal(); // Wait for the player's name
+                if (playerName) {
+                    const savedGameId = await saveGame2();
                     if (savedGameId) {
-                        await saveHighScoreToServer(savedGameId);
-                        //alert('High score saved successfully!');
-                        //showHighscoreSavedModal();
+                        await saveHighScoreToServer(savedGameId, playerName);
                     }
                 }
             }
@@ -840,7 +898,7 @@ async function gameOver() {
       }, 3000);
 }
 
-async function saveHighScoreToServer(savedGameId) {
+async function saveHighScoreToServer(savedGameId, name) {
     const token = localStorage.getItem('token');
     if (!token) {
         alert('You need to be logged in to save the high score.');
@@ -854,10 +912,11 @@ async function saveHighScoreToServer(savedGameId) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ gameId: savedGameId })
+            body: JSON.stringify({ gameId: savedGameId, playerName: name})
         });
 
         const data = await response.json();
+        redirectToHomePage();
         if (data.status !== 'success') {
             alert('Error saving high score: ' + data.message);
         }

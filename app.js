@@ -172,6 +172,51 @@ app.post('/save-game', verifyToken, async (req, res) => {
     }
 });
 
+app.post('/save-game2', verifyToken, async (req, res) => {
+    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode } = req.body;
+    const buildingsGridString = JSON.stringify(buildingsGrid);
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const transaction = new sql.Transaction(pool);
+
+        await transaction.begin();
+
+        try {
+            const insertGameSaveQuery = `
+                INSERT INTO game_saves (grid_size, buildings_grid, points, coins, turn_number, gameMode) 
+                OUTPUT INSERTED.id
+                VALUES (@gridSize, @buildingsGrid, @points, @coins, @turnNumber, @gameMode)
+            `;
+
+            const insertGameSaveResult = await transaction.request()
+                .input('gridSize', sql.Int, gridSize)
+                .input('buildingsGrid', sql.NVarChar(sql.MAX), buildingsGridString)
+                .input('points', sql.Int, points)
+                .input('coins', sql.Int, coins)
+                .input('turnNumber', sql.Int, turnNumber)
+                .input('gameMode', sql.NVarChar(50), gameMode)
+                .query(insertGameSaveQuery);
+
+            const gameId = insertGameSaveResult.recordset[0].id;
+
+            console.log('Game ID:', gameId);
+
+            await transaction.commit();
+
+            res.status(200).json({ status: 'success', message: 'Game saved successfully', gameId });
+        } catch (err) {
+            await transaction.rollback();
+            res.status(500).json({ status: 'error', message: 'Error saving game' });
+            console.error('Error saving game:', err);
+        }
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: 'Error saving game' });
+        console.error('Error saving game:', err);
+    }
+});
+
+
 app.get('/get-games', verifyToken, async (req, res) => {
     try {
         console.log("userID:", req.userId);
@@ -211,8 +256,9 @@ app.get('/get-games', verifyToken, async (req, res) => {
 app.get('/get-high-scores', verifyToken, async (req, res) => {
     try {
         const query = `
-            SELECT TOP 100
+            SELECT TOP 10
                 u.Username AS playerName,
+                hs.playerName AS playerName2,
                 gs.points AS score,
                 gs.turn_number AS turnNumber,
                 gs.created_at AS date
@@ -226,8 +272,11 @@ app.get('/get-high-scores', verifyToken, async (req, res) => {
         const request = new sql.Request();
         const result = await request.query(query);
 
+        
+
         const highScores = result.recordset.map(score => ({
             playerName: score.playerName,
+            playerName2: score.playerName2,
             score: score.score,
             turnNumber: score.turnNumber,
             date: score.date
@@ -244,10 +293,13 @@ app.get('/get-high-scores', verifyToken, async (req, res) => {
 });
 
 app.post('/create-high-score', verifyToken, async (req, res) => {
-    const { gameId } = req.body;
+    const { gameId, playerName } = req.body;
 
     if (!gameId) {
         return res.status(400).json({ status: 'error', message: 'Game ID is required' });
+    }
+    else if (!playerName) {
+        playerName = null;
     }
 
     try {
@@ -269,13 +321,15 @@ app.post('/create-high-score', verifyToken, async (req, res) => {
 
         // Insert the high score
         const insertHighScoreQuery = `
-            INSERT INTO highscores (userId, id)
-            VALUES (@userId, @gameId)
+            INSERT INTO highscores (userId, id, playerName)
+            VALUES (@userId, @gameId, @playerName)
         `;
 
         await request
             .input('userId', sql.Int, req.userId)
+            .input('playerName', sql.NVarChar, playerName)
             .query(insertHighScoreQuery);
+            
 
         res.status(200).json({ status: 'success', message: 'High score created successfully' });
     } catch (err) {

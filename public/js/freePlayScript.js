@@ -4,12 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameState = JSON.parse(loadedGame);
         gridSize = gameState.gridSize;
         buildingsGrid = gameState.buildingsGrid;
-        points = gameState.points;
-        coins = gameState.coins;
-        turnNumber = gameState.turnNumber;
+        points = parseInt(gameState.points);
+        coins = parseInt(gameState.coins);
+        turnNumber = parseInt(gameState.turnNumber);
         gameMode = gameState.gameMode;
         localStorage.removeItem('loadedGame'); 
 
+        if (coins == -1){
+            coins == Infinity;
+        }
         initializeGrid(gridSize); 
         initializeGame(); 
     } else{ ;

@@ -51,6 +51,7 @@ CREATE TABLE UserEvents (
 CREATE TABLE highscores (
     userId INT NOT NULL,
     id INT NOT NULL,
+    playerName NVARCHAR(MAX) NULL,
     PRIMARY KEY (userId, id),
     FOREIGN KEY (userId) REFERENCES Users(UserId),
     FOREIGN KEY (id) REFERENCES game_saves(id)

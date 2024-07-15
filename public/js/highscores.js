@@ -58,13 +58,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const startIndex = currentPage * scoresPerPage;
         const endIndex = startIndex + scoresPerPage;
         const visibleScores = scores.slice(startIndex, endIndex);
-
+        
         visibleScores.forEach((score, index) => {
+            let playerName = score.playerName;
+            if (score.playerName2 != null) {
+            playerName = score.playerName2;
+            }
+            else {
+            playerName = score.playerName;
+            }
             const scoreEntry = document.createElement('div');
             scoreEntry.className = 'high-score-entry';
             scoreEntry.innerHTML = `
                 <span>#${highScores.indexOf(score) + 1}</span>
-                <span>${score.playerName}</span>
+                <span>${playerName}</span>
                 <span>${score.score} points</span>
                 <span>Turn ${score.turnNumber}</span>
                 <span>${formatDate(score.date)}</span>
