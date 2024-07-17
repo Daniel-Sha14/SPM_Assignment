@@ -120,7 +120,7 @@ app.get('/profile', verifyToken, (req, res) => {
 });
 
 app.post('/save-game', verifyToken, async (req, res) => {
-    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode } = req.body;
+    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode, saveDate } = req.body;
     const buildingsGridString = JSON.stringify(buildingsGrid);
 
     try {
@@ -131,9 +131,9 @@ app.post('/save-game', verifyToken, async (req, res) => {
 
         try {
             const insertGameSaveQuery = `
-                INSERT INTO game_saves (grid_size, buildings_grid, points, coins, turn_number, gameMode) 
+                INSERT INTO game_saves (grid_size, buildings_grid, points, coins, turn_number, gameMode, saveDate) 
                 OUTPUT INSERTED.id
-                VALUES (@gridSize, @buildingsGrid, @points, @coins, @turnNumber, @gameMode)
+                VALUES (@gridSize, @buildingsGrid, @points, @coins, @turnNumber, @gameMode, @saveDate)
             `;
 
             const insertGameSaveResult = await transaction.request()
@@ -143,6 +143,7 @@ app.post('/save-game', verifyToken, async (req, res) => {
                 .input('coins', sql.Int, coins)
                 .input('turnNumber', sql.Int, turnNumber)
                 .input('gameMode', sql.NVarChar(50), gameMode)
+                .input('saveDate', sql.DateTime, saveDate)
                 .query(insertGameSaveQuery);
 
             const gameId = insertGameSaveResult.recordset[0].id;
@@ -173,7 +174,7 @@ app.post('/save-game', verifyToken, async (req, res) => {
 });
 
 app.post('/save-game2', verifyToken, async (req, res) => {
-    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode } = req.body;
+    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode, saveDate } = req.body;
     const buildingsGridString = JSON.stringify(buildingsGrid);
 
     try {
@@ -184,9 +185,9 @@ app.post('/save-game2', verifyToken, async (req, res) => {
 
         try {
             const insertGameSaveQuery = `
-                INSERT INTO game_saves (grid_size, buildings_grid, points, coins, turn_number, gameMode) 
+                INSERT INTO game_saves (grid_size, buildings_grid, points, coins, turn_number, gameMode, saveDate) 
                 OUTPUT INSERTED.id
-                VALUES (@gridSize, @buildingsGrid, @points, @coins, @turnNumber, @gameMode)
+                VALUES (@gridSize, @buildingsGrid, @points, @coins, @turnNumber, @gameMode, @saveDate)
             `;
 
             const insertGameSaveResult = await transaction.request()
@@ -196,6 +197,7 @@ app.post('/save-game2', verifyToken, async (req, res) => {
                 .input('coins', sql.Int, coins)
                 .input('turnNumber', sql.Int, turnNumber)
                 .input('gameMode', sql.NVarChar(50), gameMode)
+                .input('saveDate', sql.DateTime, saveDate)
                 .query(insertGameSaveQuery);
 
             const gameId = insertGameSaveResult.recordset[0].id;
@@ -221,7 +223,7 @@ app.get('/get-games', verifyToken, async (req, res) => {
     try {
         console.log("userID:", req.userId);
         const query = `
-            SELECT gs.id, gs.grid_size, gs.buildings_grid, gs.points, gs.coins, gs.turn_number, gs.gameMode, gs.created_at
+            SELECT gs.id, gs.grid_size, gs.buildings_grid, gs.points, gs.coins, gs.turn_number, gs.gameMode, gs.created_at, gs.saveDate
             FROM game_saves gs
             INNER JOIN UserEvents ue ON gs.id = ue.EventId
             WHERE ue.UserId = @userId
@@ -240,7 +242,8 @@ app.get('/get-games', verifyToken, async (req, res) => {
             coins: game.coins,
             turnNumber: game.turn_number,
             date: game.created_at,
-            gameMode: game.gameMode
+            gameMode: game.gameMode,
+            saveDate: game.saveDate
         }));
 
         res.status(200).json({

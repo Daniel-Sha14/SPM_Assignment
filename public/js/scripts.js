@@ -11,7 +11,8 @@ async function saveGame() {
         points: points,
         coins: coins,
         turnNumber: turnNumber,
-        gameMode: 'arcade'
+        gameMode: 'arcade',
+        saveDate: new Date().toISOString()
     };
 
     try {
@@ -51,7 +52,8 @@ async function saveGame2() {
         points: points,
         coins: coins,
         turnNumber: turnNumber,
-        gameMode: 'arcade'
+        gameMode: 'arcade',
+        saveDate: new Date().toISOString()
     };
 
     try {
@@ -111,6 +113,7 @@ function loadGameState(gameState) {
     coins = parseInt(gameState.coins);
     turnNumber = parseInt(gameState.turnNumber);
     gameMode = gameState.gameMode;
+    saveDate = new Date().toISOString()
 
     const grid = document.getElementById('grid');
     grid.innerHTML = ''; // Clear the grid

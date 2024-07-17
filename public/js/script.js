@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             saveGames = data.games.map(game => ({
                 ...game,
-                date: new Date(game.date)
+                date: new Date(game.saveDate) // Parse saveDate correctly
             })).sort((a, b) => b.date - a.date);
             displaySaveGames();
         })
@@ -140,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             points: card.dataset.points,
             coins: card.dataset.coins,
             turnNumber: card.dataset.turnNumber,
-            gameMode: card.dataset.gameMode
+            gameMode: card.dataset.gameMode,
+            saveDate: new Date().toDateString() // Update saveDate to current date and time
         };
         
         localStorage.setItem('loadedGame', JSON.stringify(gameData));

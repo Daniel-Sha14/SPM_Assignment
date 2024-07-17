@@ -19,7 +19,8 @@ CREATE TABLE game_saves (
     coins INT NOT NULL,
     turn_number INT NOT NULL,
     created_at DATETIME NULL,
-    gameMode NVARCHAR(MAX) NULL
+    gameMode NVARCHAR(MAX) NULL,
+    saveDate DATETIME
 );
 ```
 

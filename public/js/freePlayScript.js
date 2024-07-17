@@ -8,13 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
         coins = parseInt(gameState.coins);
         turnNumber = parseInt(gameState.turnNumber);
         gameMode = gameState.gameMode;
+        const saveDate = gameState.saveDate
         localStorage.removeItem('loadedGame'); 
 
         if (coins == -1){
             coins == Infinity;
         }
         initializeGrid(gridSize); 
-        initializeGame(); 
+        initializeGame();
     } else{ ;
         initializeGrid(gridSize); 
         initializeGame(); 
@@ -510,7 +511,8 @@ function saveGame() {
         points: points,
         coins: -1,
         turnNumber: turnNumber,
-        gameMode: 'freePlay'
+        gameMode: 'freePlay',
+        saveDate: new Date().toISOString() // set saveDate
     };
 
     fetch('/save-game', {
