@@ -50,7 +50,7 @@ app.post('/signup', async (req, res) => {
         const result = await request.query(query);
         const userId = result.recordset[0].UserId;
 
-        const token = jwt.sign({ userId, username }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId, username }, JWT_SECRET);
         res.status(200).json({ status: 'success', message: 'User created successfully', token });
     } catch (err) {
         res.status(500).json({ status: 'error', message: 'Internal server error' });
@@ -84,7 +84,7 @@ app.post('/login', async (req, res) => {
             return res.status(401).json({ status: 'error', message: 'Invalid email or password' });
         }
 
-        const token = jwt.sign({ userId: user.UserId, username: user.Username }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.UserId, username: user.Username }, JWT_SECRET);
         res.status(200).json({ status: 'success', message: 'Login successful', token });
     } catch (err) {
         res.status(500).json({ status: 'error', message: 'Internal server error' });
@@ -264,12 +264,12 @@ app.get('/get-high-scores', verifyToken, async (req, res) => {
                 hs.playerName AS playerName2,
                 gs.points AS score,
                 gs.turn_number AS turnNumber,
-                gs.created_at AS date
+                gs.saveDate AS date
             FROM highscores hs
             INNER JOIN Users u ON hs.userId = u.UserId
             INNER JOIN game_saves gs ON hs.id = gs.id
             WHERE gs.turn_number > 0 AND gs.gameMode = 'arcade'
-            ORDER BY gs.points DESC, gs.created_at DESC
+            ORDER BY gs.points ASC, gs.saveDate DESC
         `;
 
         const request = new sql.Request();
