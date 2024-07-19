@@ -4,28 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ngee Ann City</title>
+
+    <!-- Link to main stylesheet for styling the page -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
     <div class="container">
+
+        <!-- Main menu section -->
         <div id="main-menu">
             <h1>Ngee Ann City</h1>
             <div class="menu">
+
+                <!-- Buttons for various game options -->
                 <button class="button" id="new-arcade-game">New Arcade Game</button>
                 <button class="button" id="new-free-play-game">New Free Play Game</button>
                 <button class="button" id="load-saved-game">Load Saved Game</button>
                 <button class="button" id="display-high-scores">View High Scores</button>
                 <div class="button-group">
+
+                    <!-- Buttons for login and exiting the game -->
                     <button class="button half-width" id="login">Login</button>
                     <button class="button half-width" id="exit-game">Exit Game</button>
                 </div>
             </div>
         </div>
 
+        <!-- Hidden section for loading saved games, shown when applicable -->
         <div id="save-game-selection" class="hidden">
             <h2>Load Saved Game</h2>
             <div id="save-game-container"></div>
+
+            <!-- Navigation buttons for browsing through saved games -->
             <div class="navigation-buttons">
                 <button id="prev-page" class="nav-button">Previous</button>
                 <button id="next-page" class="nav-button">Next</button>
@@ -33,9 +44,13 @@
         </div>
     </div>
 
+    <!-- Button to control background music -->
     <button id="music-control" class="music-control">🔇</button>
    
-    <script  src="../js/script.js"></script>
+    <!-- Link to JavaScript file for handling main menu functionality -->
+    <script src="../js/script.js"></script>
+    
+    <!-- Link to module JavaScript file for music control -->
     <script type="module" src="../js/music.js"></script>
     
 </body>
