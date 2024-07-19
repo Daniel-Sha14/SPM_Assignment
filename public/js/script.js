@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     returnToMenuBtn.textContent = 'Return to Menu';
     returnToMenuBtn.className = 'button';
     saveGameSelection.appendChild(returnToMenuBtn);
-
+     // Fetch saved games from the server
     function fetchSaveGames() {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -63,11 +63,11 @@ document.addEventListener('DOMContentLoaded', () => {
             minute: '2-digit'
         });
     }
-
+    // Create a card for each saved game
     function createSaveGameCard(game, index) {
         const card = document.createElement('div');
         card.className = 'save-game-card';
-       
+       // Store game data in the card's dataset
         card.dataset.gameId = game.id;
     card.dataset.gridSize = game.gridSize;
     card.dataset.buildingsGrid = JSON.stringify(game.buildingsGrid);
@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.dataset.gameMode = game.gameMode;
 
         console.log(card.dataset.buildingsGrid);
+        // Create a canvas to render the game grid
         const canvas = document.createElement('canvas');
         canvas.width = 300;
         canvas.height = 300;
@@ -97,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.addEventListener('click', () => loadSaveGame(card));
         return card;
     }
-
+    // Render the game grid on the canvas
     function renderGridOnCanvas(canvas, buildingsGrid, gridSize) {
         const ctx = canvas.getContext('2d');
         const cellSize = canvas.width / gridSize;
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         return icons[buildingType] || '';
     }
-
+    // Load the selected saved game
     function loadSaveGame(card) {
         console.log(card.dataset.buildingsGrid);
         const gameData = {
@@ -143,12 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
             gameMode: card.dataset.gameMode,
             saveDate: new Date().toDateString() // Update saveDate to current date and time
         };
-        
+        // Save the game data to localStorage and redirect to the appropriate game page
         localStorage.setItem('loadedGame', JSON.stringify(gameData));
         const gamePage = gameData.gameMode === 'arcade' ? '../html/arcade-game.html' : '../html/freePlay.html';
         window.location.href = gamePage;
     }
-
+    // Create a placeholder card when no saved games are available
     function createPlaceholderCard() {
         const card = document.createElement('div');
         card.className = 'save-game-card placeholder';
@@ -165,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         return card;
     }
-
+    // Display the saved games on the page
     function displaySaveGames() {
         saveGameContainer.innerHTML = '';
         const startIndex = currentPage * gamesPerPage;
@@ -186,20 +187,20 @@ document.addEventListener('DOMContentLoaded', () => {
         prevPageBtn.disabled = currentPage === 0;
         nextPageBtn.disabled = endIndex >= saveGames.length;
     }
-
+    // Show the saved game selection screen
     function showSaveGameSelection() {
         mainMenu.classList.add('hidden');
         saveGameSelection.classList.remove('hidden');
         saveGameSelection.style.animation = 'slideIn 0.5s ease-out';
         fetchSaveGames();
     }
-
+    // Hide the saved game selection screen and show the main menu
     function hideSaveGameSelection() {
         saveGameSelection.classList.add('hidden');
         mainMenu.classList.remove('hidden');
         mainMenu.style.animation = 'slideIn 0.5s ease-out';
     }
-
+    // Handle login/logout button click
     function handleLoginLogout() {
         if (localStorage.getItem('token')) {
             handleLogout();
@@ -211,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'https://www.google.com';
     }
     
-
+    // Handle logout by removing the token and updating the state
     function handleLogout() {
         localStorage.removeItem('token');
         alert('Logged out successfully');
@@ -229,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkAuth() {
         return !!localStorage.getItem('token');
     }
-
+    
     function handleAuthenticatedAction(action) {
         if (checkAuth()) {
             switch (action) {
