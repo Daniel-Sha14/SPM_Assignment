@@ -207,6 +207,10 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = '../html/login.html';
         }
     }
+    function exitGame() {
+        window.location.href = 'https://www.google.com';
+    }
+    
 
     function handleLogout() {
         localStorage.removeItem('token');
@@ -307,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     loginButton.addEventListener('click', handleLoginLogout);
-    exitGameButton.addEventListener('click', () => alert('Exiting game...'));
+    exitGameButton.addEventListener('click', () => exitGame());
     newArcadeGameBtn.addEventListener('click', () => handleAuthenticatedAction('arcade'));
     newFreePlayGameBtn.addEventListener('click', () => handleAuthenticatedAction('freeplay'));
     loadSavedGameBtn.addEventListener('click', () => handleAuthenticatedAction('load'));

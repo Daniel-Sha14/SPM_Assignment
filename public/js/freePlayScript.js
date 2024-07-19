@@ -135,31 +135,31 @@ function placeBuilding(row, col, square) {
 
 const buildings = {
     residential: {
-        description: 'Residential (R): If it is next to an industry (I), then it scores 1 point only. Otherwise, it scores 1 point for each adjacent residential (R) or commercial (C), and 2 points for each adjacent park (O).',
+        description: 'Residential (R): If it is next to an industry (I), then it scores 1 point only. Otherwise, it scores 1 point for each adjacent residential (R) or commercial (C), and 2 points for each adjacent park (O).  \n\nEach residential building generates 1 coin per turn. Each cluster of residential buildings (must be immediately next to each other) requires 1 coin per turn to upkeep.',
         icon: 'R',
         upkeep: 1,
         profit: 1
     },
     industry: {
-        description: 'Industry (I): Scores 1 point per industry in the city. Each industry generates 1 coin per residential building adjacent to it.',
+        description: 'Industry (I): Scores 1 point per industry in the city. Each industry generates 1 coin per residential building adjacent to it.  \n\nEach industry generates 2 coins per turn and cost 1 coin per turn to upkeep.',
         icon: 'I',
         upkeep: 1,
         profit: 2
     },
     commercial: {
-        description: 'Commercial (C): Scores 1 point per commercial adjacent to it. Each commercial generates 1 coin per residential adjacent to it.',
+        description: 'Commercial (C): Scores 1 point per commercial adjacent to it. Each commercial generates 1 coin per residential adjacent to it.  \n\n Each commercial generates 3 coins per turn and cost 2 coins per turn to upkeep. ',
         icon: 'C',
         upkeep: 2,
         profit: 3
     },
     park: {
-        description: 'Park (O): Scores 1 point per park adjacent to it.',
+        description: 'Park (O): Scores 1 point per park adjacent to it. \n\n Each park costs 1 coin to upkeep. ',
         icon: 'O',
         upkeep: 1,
         profit: 0
     },
     road: {
-        description: 'Road (*): Scores 1 point per connected road (*) in the same row.',
+        description: 'Road (*): Scores 1 point per connected road (*) in the same row.  \n\n Each unconnected road segment costs 1 coin to upkeep. ',
         icon: '*',
         upkeep: 1,
         profit: 0
