@@ -9,14 +9,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordField = document.getElementById('password');
     const backBtn = document.getElementById('back-btn');
     let isLogin = true;
-
+    // event listener for the toggle button to switch between login and signup forms
     toggleBtn.addEventListener('click', toggleForm);
-
+    // Toggle the form state between login and signup
     function toggleForm() {
         isLogin = !isLogin;
         updateFormState();
     }
-
+    // Update the form's appearance and requirements based on the current state
     function updateFormState() {
         if (isLogin) {
             formTitle.textContent = 'LOGIN';
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.querySelector('.toggle-text span').addEventListener('click', toggleForm);
     }
-
+    // Handle form submission for login and signup
     authForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 

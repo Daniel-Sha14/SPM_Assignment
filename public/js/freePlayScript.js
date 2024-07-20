@@ -1,7 +1,9 @@
+//Event listener to initialise game state
 document.addEventListener('DOMContentLoaded', () => {
     const loadedGame = localStorage.getItem('loadedGame');
     if (loadedGame) {
         const gameState = JSON.parse(loadedGame);
+        //Load game state from local storage
         gridSize = gameState.gridSize;
         buildingsGrid = gameState.buildingsGrid;
         points = parseInt(gameState.points);
@@ -22,14 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeGame(); 
     }
 });
-
+//Initialise game variables
 let gridSize = 5;
 let buildingsGrid = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
 let buildMode = false; 
 const maxGridSize = 95;
 let consecutiveDeficitTurns = 0;
 const maxDeficitTurns = 20; 
-
+//Function to initialise game grid
 function initializeGrid(size) {
     const grid = document.getElementById('grid');
     grid.innerHTML = '';
@@ -37,7 +39,7 @@ function initializeGrid(size) {
     grid.style.gridTemplateRows = `repeat(${size}, 50px)`; 
 
     const fragment = document.createDocumentFragment();
-
+    //Create grid
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
             const square = document.createElement('div');
@@ -54,7 +56,7 @@ function initializeGrid(size) {
 
     grid.appendChild(fragment);
 
-  
+    //Adjusting platform size based on grid size
     const platform = document.querySelector('.platform');
     const platformSize = size * 52; 
     platform.style.width = `${platformSize}px`;
@@ -64,7 +66,7 @@ function initializeGrid(size) {
     grid.removeEventListener('click', handleGridClick); 
     grid.addEventListener('click', handleGridClick);
 }
-
+//Function to handle grid square click events
 function handleGridClick(event) {
     const square = event.target.closest('.grid-square');
     if (!square) return;
@@ -109,7 +111,7 @@ function expandGrid() {
 
     const newBuildingsGrid = Array.from({ length: newGridSize }, () => Array(newGridSize).fill(null));
 
-    
+    // Transfer buildings to new grid
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
             newBuildingsGrid[i + offset][j + offset] = buildingsGrid[i][j];
@@ -120,7 +122,7 @@ function expandGrid() {
     buildingsGrid = newBuildingsGrid;
     initializeGrid(gridSize);
 }
-
+// Function to place building on grid
 function placeBuilding(row, col, square) {
     if (!square.classList.contains('built') && selectedBuilding) {
         square.innerText = buildings[selectedBuilding].icon;
@@ -131,7 +133,7 @@ function placeBuilding(row, col, square) {
             firstBuildingPlaced = true;
         }
 
-       
+       //Check if grid needs to be expanded
         if (row === 0 || col === 0 || row === gridSize - 1 || col === gridSize - 1) {
             expandGrid();
         }
@@ -141,7 +143,7 @@ function placeBuilding(row, col, square) {
             square.classList.remove('highlight');
         });
 
-      
+        //Update selected buildings
         const remainingBuilding = selectedBuildings.find(b => b !== selectedBuilding);
         const newBuilding = getRandomBuilding(remainingBuilding);
         selectedBuildings = [selectedBuilding, newBuilding];
@@ -152,7 +154,7 @@ function placeBuilding(row, col, square) {
         endTurn();
     }
 }
-
+//Define building properties
 const buildings = {
     residential: {
         description: 'Residential (R): If it is next to an industry (I), then it scores 1 point only. Otherwise, it scores 1 point for each adjacent residential (R) or commercial (C), and 2 points for each adjacent park (O).  \n\nEach residential building generates 1 coin per turn. Each cluster of residential buildings (must be immediately next to each other) requires 1 coin per turn to upkeep.',
@@ -185,7 +187,7 @@ const buildings = {
         profit: 0
     }
 };
-
+//Initialise game variables
 let selectedBuilding = null;
 let selectedBuildings = [];
 let points = 0;
@@ -193,16 +195,16 @@ let coins = Infinity;
 let turnNumber = 1;
 let firstBuildingPlaced = false;
 let demolishMode = false;
-
+//Function to update scoreboard
 function updateScoreboard() {
     document.getElementById('score').innerText = points;
     document.getElementById('coins').innerText = coins;
 }
-
+//Function to update turn counter
 function updateTurnCounter() {
     document.getElementById('turn').innerText = `Turn: ${turnNumber}`;
 }
-
+//Function to select a building type
 function selectBuilding(buildingType) {
 
     document.querySelectorAll('.building').forEach(building => {
@@ -217,20 +219,20 @@ function selectBuilding(buildingType) {
     demolishMode = false;
     removeDemolishHighlights();
 }
-
+//Function to get random building type, excluding a specific type
 function getRandomBuilding(exclude) {
     const buildingKeys = Object.keys(buildings).filter(key => key !== exclude);
     const randomIndex = Math.floor(Math.random() * buildingKeys.length);
     return buildingKeys[randomIndex];
 }
-
+//Function to initialise the game
 function initializeGame() {
     updateTurnCounter();
     selectedBuildings = [getRandomBuilding(null), getRandomBuilding(null)];
     updateSelectedBuildingsUI();
     updateScoreboard();
 }
-
+//Function to update selected building UI
 function updateSelectedBuildingsUI() {
     document.querySelectorAll('.building').forEach(building => {
         building.classList.remove('disabled');
@@ -239,7 +241,7 @@ function updateSelectedBuildingsUI() {
 
     selectBuilding(selectedBuildings[0]);
 }
-
+//Function to highlight valid cells for building placement
 function highlightValidCells() {
     const gridSquares = document.querySelectorAll('.grid-square');
 
@@ -253,11 +255,11 @@ function highlightValidCells() {
         }
     });
 }
-
+//Function to check if placement is valid
 function isValidPlacement(row, col) {
     return !buildingsGrid[row][col]; 
 }
-
+//Function to enter build mode
 function buildStructure() {
     if (selectedBuilding) {
         demolishMode = false; 
@@ -268,7 +270,7 @@ function buildStructure() {
         alert('Please select a building type first.');
     }
 }
-
+//Function to enter demolish mode
 function enterDemolishMode() {
     demolishMode = true;
     buildMode = false; 
@@ -279,7 +281,7 @@ function enterDemolishMode() {
     });
     highlightDemolishableBuildings();
 }
-
+//Function to highlight demolishable buildings
 function highlightDemolishableBuildings() {
     const gridSquares = document.querySelectorAll('.grid-square');
     gridSquares.forEach(square => {
@@ -291,7 +293,7 @@ function highlightDemolishableBuildings() {
         }
     });
 }
-
+//Function to demolish building
 function demolishBuilding(row, col, square) {
     if (demolishMode && square.classList.contains('built')) {
         square.innerText = '';
@@ -302,19 +304,19 @@ function demolishBuilding(row, col, square) {
         endTurn();
     }
 }
-
+//Function to remove demolish highlights
 function removeDemolishHighlights() {
     document.querySelectorAll('.grid-square').forEach(square => {
         square.classList.remove('highlight-demolish');
     });
 }
-
+//Function to remove build highlights
 function removeBuildHighlights() {
     document.querySelectorAll('.grid-square').forEach(square => {
         square.classList.remove('highlight');
     });
 }
-
+//Function to end turn and update game state
 function endTurn() {
     buildMode = false; 
     turnNumber += 1;
@@ -345,7 +347,7 @@ function checkSurroundings(row, col) {
     return surroundings;
 }
 
-
+//Function to calculate points
 function calculatePoints(row, col) {
     const buildingType = buildingsGrid[row][col];
     if (!buildingType) return 0;
@@ -354,14 +356,14 @@ function calculatePoints(row, col) {
     let points = 0;
 
     if (buildingType === 'residential') {
-      
+        //Check for adjacent industry, which gives 1 point
         for (let i = 0; i < surroundings.length; i++) {
             const s = surroundings[i];
             if (s.type === 'industry') {
                 return 1;
             }
         }
-       
+        //Ensure residential building is next to road
         let hasRoad = false;
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -380,7 +382,7 @@ function calculatePoints(row, col) {
         points = calculateBuildingPoints(buildingType, collectedBuildings, row, col);
         return points;
     } else if (buildingType === 'industry') {
-       
+        //Calculate points based on number of industries in grid
         for (let i = 0; i < gridSize; i++) {
             for (let j = 0; j < gridSize; j++) {
                 if (buildingsGrid[i][j] === 'industry') {
@@ -390,7 +392,7 @@ function calculatePoints(row, col) {
         }
         return points;
     } else if (buildingType === 'road') {
-        
+        //Ensure road is connected to other roads
         let hasRoad = false;
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -404,7 +406,7 @@ function calculatePoints(row, col) {
         const roadCount = countConnectedRoads(row, col);
         return roadCount;
     } else if (buildingType === 'commercial' || buildingType === 'park') {
-        
+        //Ensure commercial or park is next to road
         let hasRoad = false;
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -414,7 +416,7 @@ function calculatePoints(row, col) {
         }
         if (!hasRoad) return 0;
 
-       
+        //Collect buildings connected by roads
         const collectedBuildings = [];
         for (let i = 0; i < surroundings.length; i++) {
             if (surroundings[i].type === 'road') {
@@ -473,7 +475,7 @@ function followRoadAndCollectBuildings(startRow, startCol, collectedBuildings, o
         }
     }
 }
-
+//Calculate points based on building type and its surroundings
 function calculateBuildingPoints(buildingType, surroundingBuildings, originalRow, originalCol) {
     let points = 0;
 
@@ -517,7 +519,7 @@ function updatePoints() {
     }
     updateScoreboard();
 }
-
+//Function to save game in database
 function saveGame() {
     const token = localStorage.getItem('token');
     if (!token) {

@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         searchInput.removeEventListener('keypress', handleSearchKeypress);
         returnToMenuBtn.removeEventListener('click', handleReturnToMenu);
     }
-
+    // Fetch high scores from the server
     async function fetchHighScores() {
         try {
             const response = await fetch('/get-high-scores', {
@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             console.log(data);
             if (data.status === 'success') {
-                highScores = data.highScores;
-                displayHighScores();
+                highScores = data.highScores; // Store the fetched high scores
+                displayHighScores(); // Display the high scores
             } else {
                 alert('Error fetching high scores: ' + data.message);
             }
@@ -57,8 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
         highScoresContainer.innerHTML = '';
         const startIndex = currentPage * scoresPerPage;
         const endIndex = startIndex + scoresPerPage;
+        // Get the scores to display
         const visibleScores = scores.slice(startIndex, endIndex);
-        
+        // Create and append score entries 
         visibleScores.forEach((score, index) => {
             let playerName = score.playerName;
             if (score.playerName2 != null) {
@@ -88,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = new Date(dateString);
         return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
     }
-
+    // Search high scores based on the search term
     function searchHighScores() {
         const searchTerm = searchInput.value.toLowerCase();
         const filteredScores = highScores.filter(score => 
