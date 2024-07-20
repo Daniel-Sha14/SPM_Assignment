@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         buildingsGrid = gameState.buildingsGrid;
         points = parseInt(gameState.points);
         coins = parseInt(gameState.coins);
+        console.log(coins);
         turnNumber = parseInt(gameState.turnNumber);
         gameMode = gameState.gameMode;
         const saveDate = gameState.saveDate
@@ -75,6 +76,25 @@ function handleGridClick(event) {
         demolishBuilding(row, col, square);
     } else if (buildMode) {
         placeBuilding(row, col, square);
+    }
+}
+
+function collectResidentialCluster(startRow, startCol, cluster) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+        cluster.add({ row, col });
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (s.type === 'residential' && !visited.has(`${s.row},${s.col}`)) {
+                queue.push(s);
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
     }
 }
 

@@ -267,9 +267,9 @@ body {
     border: none;
     font-size: 34px;
     cursor: pointer;
-    z-index: 1000; /* Ensure it is above other elements */
+    z-index: 1000; 
 }
 
 .music-control:focus {
-    outline: none; /* Remove focus outline */
+    outline: none; 
 }
