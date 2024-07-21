@@ -1,7 +1,7 @@
-async function saveGame() {
+async function saveGame(saveName) {
     const token = localStorage.getItem('token');
     if (!token) {
-        alert('You need to be logged in to save the game.');
+        showAuthAlert(); // Show auth alert if not logged in
         return;
     }
 
@@ -12,7 +12,8 @@ async function saveGame() {
         coins: coins,
         turnNumber: turnNumber,
         gameMode: 'arcade',
-        saveDate: new Date().toISOString()
+        saveDate: new Date().toISOString(),
+        saveName: saveName
     };
 
     try {
@@ -29,7 +30,7 @@ async function saveGame() {
         if (data.status === 'success') {
             //alert('Game saved successfully!');
             showSavedGameModal();
-            return data.gameId;  // Assume the API returns the saved game ID
+            return data.gameId;  
         } else {
             alert('Error saving game: ' + data.message);
         }
@@ -78,6 +79,122 @@ async function saveGame2() {
         console.error('Error:', error);
         alert('Error saving game');
     }
+}
+
+// Keep the original showAuthAlert function for other authentication needs
+function showAuthAlert() {
+    const alertHtml = `
+        <div id="auth-alert" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        ">
+            <div style="
+                background: var(--card-bg-color);
+                border: 2px solid var(--primary-color);
+                border-radius: 10px;
+                padding: 2rem;
+                text-align: center;
+                max-width: 700px;
+                width: 90%;
+            ">
+                <h2 style="color: var(--primary-color);">Authentication Required</h2>
+                <p>Please log in to access this feature.</p>
+                <div style="margin-top: 1rem;">
+                    <button id="auth-alert-cancel" class="button" style="margin-right: 1rem;">Cancel</button>
+                    <button id="auth-alert-login" class="button">Log In</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+    document.getElementById('auth-alert-cancel').addEventListener('click', () => {
+        document.getElementById('auth-alert').remove();
+    });
+
+    document.getElementById('auth-alert-login').addEventListener('click', () => {
+        document.getElementById('auth-alert').remove();
+        handleLoginLogout();
+    });
+}
+
+function showSaveNameAlert() {
+    const alertHtml = `
+        <div id="save-name-alert" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        ">
+            <div style="
+                background: var(--card-bg-color);
+                border: 2px solid var(--primary-color);
+                border-radius: 10px;
+                padding: 2rem;
+                text-align: center;
+                max-width: 700px;
+                width: 90%;
+            ">
+                <h2 style="color: var(--primary-color);">Save Game</h2>
+                <p>Please enter a name for your save file (max 9 characters):</p>
+                <input type="text" id="save-name-input" maxlength="9" style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    margin: 1rem 0;
+                    border: 1px solid var(--primary-color);
+                    border-radius: 5px;
+                " placeholder="Enter save name">
+                <p id="char-count">0 / 9</p>
+                <div style="margin-top: 1rem;">
+                    <button id="save-name-cancel" class="button" style="margin-right: 1rem;">Cancel</button>
+                    <button id="save-name-confirm" class="button">Save</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+    const saveNameInput = document.getElementById('save-name-input');
+    const charCount = document.getElementById('char-count');
+
+    saveNameInput.addEventListener('input', function() {
+        const length = this.value.length;
+        charCount.textContent = `${length} / 9`;
+        
+        if (length > 9) {
+            this.value = this.value.slice(0, 9);
+        }
+    });
+
+    document.getElementById('save-name-cancel').addEventListener('click', () => {
+        document.getElementById('save-name-alert').remove();
+    });
+
+    document.getElementById('save-name-confirm').addEventListener('click', () => {
+        const saveName = saveNameInput.value.trim();
+        if (saveName) {
+            document.getElementById('save-name-alert').remove();
+            saveGame(saveName);
+        } else {
+            alert('Please enter a save name');
+        }
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -896,9 +1013,8 @@ async function gameOver() {
         console.error('Error:', error);
         alert('Error checking high scores');
     }
-    setTimeout(function () {
-        window.location.href = '/';
-      }, 3000);
+   
+    window.location.href = '/';;
 }
 
 async function saveHighScoreToServer(savedGameId, name) {

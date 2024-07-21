@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     returnToMenuBtn.className = 'button';
     saveGameSelection.appendChild(returnToMenuBtn);
      // Fetch saved games from the server
-    function fetchSaveGames() {
+     function fetchSaveGames() {
         const token = localStorage.getItem('token');
         if (!token) {
             return Promise.reject('No token found');
@@ -47,13 +47,13 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             saveGames = data.games.map(game => ({
                 ...game,
-                date: new Date(game.saveDate) // Parse saveDate correctly
+                date: new Date(game.saveDate),
+                saveName: game.saveName || `Save ${game.id}` // Use provided saveName or default
             })).sort((a, b) => b.date - a.date);
             displaySaveGames();
         })
         .catch(error => console.error('Error fetching saved games:', error));
     }
-
     function formatDateString(date) {
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
@@ -67,28 +67,32 @@ document.addEventListener('DOMContentLoaded', () => {
     function createSaveGameCard(game, index) {
         const card = document.createElement('div');
         card.className = 'save-game-card';
-       // Store game data in the card's dataset
         card.dataset.gameId = game.id;
-    card.dataset.gridSize = game.gridSize;
-    card.dataset.buildingsGrid = JSON.stringify(game.buildingsGrid);
-    card.dataset.points = game.points;
-    card.dataset.coins = game.coins === -1 ? Infinity : game.coins;
-    card.dataset.turnNumber = game.turnNumber;
-    card.dataset.gameMode = game.gameMode;
-
-        console.log(card.dataset.buildingsGrid);
-        // Create a canvas to render the game grid
+        card.dataset.gridSize = game.gridSize;
+        card.dataset.buildingsGrid = JSON.stringify(game.buildingsGrid);
+        card.dataset.points = game.points;
+        card.dataset.coins = game.coins;
+        card.dataset.turnNumber = game.turnNumber;
+        card.dataset.gameMode = game.gameMode;
+        card.dataset.saveName = game.saveName;
+        let coins = game.coins;
+        if (card.dataset.coins == -1){
+            coins = Infinity;
+        }
+        else{
+            coins = game.coins;
+        }
         const canvas = document.createElement('canvas');
         canvas.width = 300;
         canvas.height = 300;
         renderGridOnCanvas(canvas, game.buildingsGrid, game.gridSize);
 
         card.innerHTML = `
-            <h3>Save Game ${index + 1}</h3>
+            <h3>${game.saveName}</h3>
             <div class="card-image"></div>
             <div class="card-content">
                 <p>Mode: ${game.gameMode}</p>
-                <p>Coins: ${game.coins}</p>
+                <p>Coins: ${coins}</p>
                 <p>Points: ${game.points}</p>
                 <p>Date: ${formatDateString(game.date)}</p>
                 <p>Turn Number: ${game.turnNumber}</p>
@@ -98,6 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.addEventListener('click', () => loadSaveGame(card));
         return card;
     }
+
     // Render the game grid on the canvas
     function renderGridOnCanvas(canvas, buildingsGrid, gridSize) {
         const ctx = canvas.getContext('2d');
@@ -133,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Load the selected saved game
     function loadSaveGame(card) {
-        console.log(card.dataset.buildingsGrid);
+        
         const gameData = {
             gameId: card.dataset.gameId,
             gridSize: card.dataset.gridSize,
@@ -142,14 +147,15 @@ document.addEventListener('DOMContentLoaded', () => {
             coins: card.dataset.coins,
             turnNumber: card.dataset.turnNumber,
             gameMode: card.dataset.gameMode,
-            saveDate: new Date().toDateString() // Update saveDate to current date and time
+            saveName: card.dataset.saveName,
+            saveDate: new Date().toDateString()
         };
-        // Save the game data to localStorage and redirect to the appropriate game page
         localStorage.setItem('loadedGame', JSON.stringify(gameData));
         const gamePage = gameData.gameMode === 'arcade' ? '../html/arcade-game.html' : '../html/freePlay.html';
         window.location.href = gamePage;
     }
-    // Create a placeholder card when no saved games are available
+
+    // Update the createPlaceholderCard function to include a placeholder for saveName
     function createPlaceholderCard() {
         const card = document.createElement('div');
         card.className = 'save-game-card placeholder';
@@ -166,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
         return card;
     }
+
     // Display the saved games on the page
     function displaySaveGames() {
         saveGameContainer.innerHTML = '';

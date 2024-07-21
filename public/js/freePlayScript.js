@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const saveDate = gameState.saveDate
         localStorage.removeItem('loadedGame'); 
 
-        if (coins == -1){
-            coins == Infinity;
+        if (coins == -1  || coins == NaN || coins == Infinity)  {
+            coins = Infinity;
         }
         initializeGrid(gridSize); 
         initializeGame();
@@ -520,10 +520,10 @@ function updatePoints() {
     updateScoreboard();
 }
 //Function to save game in database
-function saveGame() {
+function saveGame(saveName) {
     const token = localStorage.getItem('token');
     if (!token) {
-        alert('You need to be logged in to save the game.');
+        showAuthAlert();
         return;
     }
 
@@ -534,7 +534,8 @@ function saveGame() {
         coins: -1,
         turnNumber: turnNumber,
         gameMode: 'freePlay',
-        saveDate: new Date().toISOString() // set saveDate
+        saveDate: new Date().toISOString(),
+        saveName: saveName
     };
 
     fetch('/save-game', {
@@ -559,9 +560,131 @@ function saveGame() {
     });
 }
 
+
+
+
+// Keep the original showAuthAlert function for other authentication needs
+function showAuthAlert() {
+    const alertHtml = `
+        <div id="auth-alert" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        ">
+            <div style="
+                background: var(--card-bg-color);
+                border: 2px solid var(--primary-color);
+                border-radius: 10px;
+                padding: 2rem;
+                text-align: center;
+                max-width: 700px;
+                width: 90%;
+            ">
+                <h2 style="color: var(--primary-color);">Authentication Required</h2>
+                <p>Please log in to access this feature.</p>
+                <div style="margin-top: 1rem;">
+                    <button id="auth-alert-cancel" class="button" style="margin-right: 1rem;">Cancel</button>
+                    <button id="auth-alert-login" class="button">Log In</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+    document.getElementById('auth-alert-cancel').addEventListener('click', () => {
+        document.getElementById('auth-alert').remove();
+    });
+
+    document.getElementById('auth-alert-login').addEventListener('click', () => {
+        document.getElementById('auth-alert').remove();
+        handleLoginLogout();
+    });
+}
+
+function showSaveNameAlert() {
+    const alertHtml = `
+        <div id="save-name-alert" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        ">
+            <div style="
+                background: var(--card-bg-color);
+                border: 2px solid var(--primary-color);
+                border-radius: 10px;
+                padding: 2rem;
+                text-align: center;
+                max-width: 700px;
+                width: 90%;
+            ">
+                <h2 style="color: var(--primary-color);">Save Game</h2>
+                <p>Please enter a name for your save file (max 9 characters):</p>
+                <input type="text" id="save-name-input" maxlength="9" style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    margin: 1rem 0;
+                    border: 1px solid var(--primary-color);
+                    border-radius: 5px;
+                " placeholder="Enter save name">
+                <p id="char-count">0 / 9</p>
+                <div style="margin-top: 1rem;">
+                    <button id="save-name-cancel" class="button" style="margin-right: 1rem;">Cancel</button>
+                    <button id="save-name-confirm" class="button">Save</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+    const saveNameInput = document.getElementById('save-name-input');
+    const charCount = document.getElementById('char-count');
+
+    saveNameInput.addEventListener('input', function() {
+        const length = this.value.length;
+        charCount.textContent = `${length} / 9`;
+        
+        if (length > 9) {
+            this.value = this.value.slice(0, 9);
+        }
+    });
+
+    document.getElementById('save-name-cancel').addEventListener('click', () => {
+        document.getElementById('save-name-alert').remove();
+    });
+
+    document.getElementById('save-name-confirm').addEventListener('click', () => {
+        const saveName = saveNameInput.value.trim();
+        if (saveName) {
+            document.getElementById('save-name-alert').remove();
+            saveGame(saveName);
+        } else {
+            alert('Please enter a save name');
+        }
+    });
+}
+
+
 function exitGame() {
     window.location.href = '../html/index.html';
 }
+
+
 
 function updateProfitAndUpkeep() {
     let totalUpkeep = 0;
@@ -581,7 +704,6 @@ function updateProfitAndUpkeep() {
                     totalUpkeep += upkeep;
                     totalProfit += profit;
 
-                    
                     if (buildingType === 'industry' || buildingType === 'commercial') {
                         const collectedResidentials = new Set();
                         const surroundings = checkSurroundings(row, col);
@@ -593,7 +715,6 @@ function updateProfitAndUpkeep() {
                         totalProfit += collectedResidentials.size;
                     }
 
-                   
                     if (buildingType === 'residential' && !visitedResidential.has(`${row},${col}`)) {
                         const cluster = new Set();
                         collectResidentialCluster(row, col, cluster);
@@ -602,7 +723,6 @@ function updateProfitAndUpkeep() {
                         totalUpkeep += 1;
                     }
 
-                    // Handle road-specific logic
                     if (buildingType === 'road') {
                         const roadCount = countConnectedRoads(row, col);
                         if (roadCount > 1) {
@@ -620,18 +740,41 @@ function updateProfitAndUpkeep() {
 
     if (netProfit < 0) {
         consecutiveDeficitTurns++;
+        console.log(`Consecutive deficit turns: ${consecutiveDeficitTurns}`);
     } else {
         consecutiveDeficitTurns = 0;
+        console.log('Deficit streak reset');
     }
 
     if (consecutiveDeficitTurns >= maxDeficitTurns) {
         setTimeout(() => {
-        alert('Game Over! You have had a deficit for 20 consecutive turns.');
-        endGame();
+            alert('Game Over! You have had a deficit for 20 consecutive turns.');
+            endGame();
         }, 500);
     }
 }
 
+function followRoadAndCollectResidentials(startRow, startCol, collectedResidentials) {
+    const queue = [{ row: startRow, col: startCol }];
+    const visited = new Set([`${startRow},${startCol}`]);
+
+    while (queue.length > 0) {
+        const { row, col } = queue.shift();
+
+        const surroundings = checkSurroundings(row, col);
+        for (let i = 0; i < surroundings.length; i++) {
+            const s = surroundings[i];
+            if (!visited.has(`${s.row},${s.col}`)) {
+                if (s.type === 'residential') {
+                    collectedResidentials.add(`${s.row},${s.col}`);
+                } else if (s.type === 'road') {
+                    queue.push(s);
+                }
+                visited.add(`${s.row},${s.col}`);
+            }
+        }
+    }
+}
 
 function endGame() {
     alert('Game Over! Returning to the main menu.');

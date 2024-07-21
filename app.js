@@ -120,7 +120,7 @@ app.get('/profile', verifyToken, (req, res) => {
 });
 
 app.post('/save-game', verifyToken, async (req, res) => {
-    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode, saveDate } = req.body;
+    const { gridSize, buildingsGrid, points, coins, turnNumber, gameMode, saveDate, saveName } = req.body;
     const buildingsGridString = JSON.stringify(buildingsGrid);
 
     try {
@@ -150,13 +150,14 @@ app.post('/save-game', verifyToken, async (req, res) => {
 
             console.log('Game ID:', gameId);
             const insertUserEventQuery = `
-                INSERT INTO UserEvents (UserId, EventId)
-                VALUES (@userId, @eventId)
+                INSERT INTO UserEvents (UserId, EventId, saveName)
+                VALUES (@userId, @eventId, @saveName)
             `;
 
             await transaction.request()
                 .input('userId', sql.Int, req.userId)
                 .input('eventId', sql.Int, gameId)
+                .input('saveName', sql.NVarChar(50), saveName)
                 .query(insertUserEventQuery);
 
             await transaction.commit();
@@ -223,7 +224,7 @@ app.get('/get-games', verifyToken, async (req, res) => {
     try {
         console.log("userID:", req.userId);
         const query = `
-            SELECT gs.id, gs.grid_size, gs.buildings_grid, gs.points, gs.coins, gs.turn_number, gs.gameMode, gs.created_at, gs.saveDate
+            SELECT gs.id, gs.grid_size, gs.buildings_grid, gs.points, gs.coins, gs.turn_number, gs.gameMode, gs.created_at, gs.saveDate, ue.saveName
             FROM game_saves gs
             INNER JOIN UserEvents ue ON gs.id = ue.EventId
             WHERE ue.UserId = @userId
@@ -243,7 +244,8 @@ app.get('/get-games', verifyToken, async (req, res) => {
             turnNumber: game.turn_number,
             date: game.created_at,
             gameMode: game.gameMode,
-            saveDate: game.saveDate
+            saveDate: game.saveDate,
+            saveName: game.saveName
         }));
 
         res.status(200).json({
@@ -269,7 +271,7 @@ app.get('/get-high-scores', verifyToken, async (req, res) => {
             INNER JOIN Users u ON hs.userId = u.UserId
             INNER JOIN game_saves gs ON hs.id = gs.id
             WHERE gs.turn_number > 0 AND gs.gameMode = 'arcade'
-            ORDER BY gs.points ASC, gs.saveDate DESC
+            ORDER BY gs.points DESC, gs.saveDate ASC
         `;
 
         const request = new sql.Request();
