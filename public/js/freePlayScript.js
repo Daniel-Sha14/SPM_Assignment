@@ -324,6 +324,7 @@ function endTurn() {
     removeBuildHighlights(); 
     updatePoints(); 
     updateProfitAndUpkeep(); 
+    checkGameEndCondition();
 }
 
 function checkSurroundings(row, col) {
@@ -748,8 +749,11 @@ function updateProfitAndUpkeep() {
 
     if (consecutiveDeficitTurns >= maxDeficitTurns) {
         setTimeout(() => {
-            alert('Game Over! You have had a deficit for 20 consecutive turns.');
-            endGame();
+            //alert('Game Over! You have had a deficit for 20 consecutive turns.');
+            //showGameOverModal();
+            console.log("showGameEndPopup is called");
+            showGameEndPopup();
+            //endGame();
         }, 500);
     }
 }
@@ -776,7 +780,112 @@ function followRoadAndCollectResidentials(startRow, startCol, collectedResidenti
     }
 }
 
+// function endGame() {
+//     //alert('Game Over! Returning to the main menu.');
+//     showGameOverModal2();
+//     window.location.href = '../html/index.html';
+// }
+
+
+// function showGameOverModal() {
+//     return new Promise((resolve) => {
+//         $('#gameOverModal').modal('show');
+//         $('#continueBtn').on('click', function () {
+//             $('#gameOverModal').modal('hide');
+//         });
+//         $('#gameOverModal').on('hidden.bs.modal', function () {
+//             resolve();
+//         });
+//     });
+// }
+
+// function showGameOverModal2() {
+//     return new Promise((resolve) => {
+//         $('#gameOverModal2').modal('show');
+//         $('#continueBtn').on('click', function () {
+//             $('#gameOverModal2').modal('hide');
+//         });
+//         $('#gameOverModal2').on('hidden.bs.modal', function () {
+//             resolve();
+//         });
+//     });
+// }
+
+
+function redirectToHomePage() {
+   
+    window.location.href = '/';
+    
+}
+
+function checkGameEndCondition() {
+    console.log("checking end game condition");
+    // Add your game end conditions here
+    if (consecutiveDeficitTurns >= maxDeficitTurns || points < 0) {
+        //showGameEndPopup();
+        endGame();
+    }
+}
+
 function endGame() {
-    alert('Game Over! Returning to the main menu.');
-    window.location.href = '../html/index.html';
+    console.log("end game function called");
+    buildMode = false;
+    demolishMode = false;
+    showGameEndPopup();
+}
+
+// Function to show game end popup
+function showGameEndPopup() {
+    console.log("Showing game end popup");
+    const popupHtml = `
+        <div id="game-end-popup" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        ">
+            <div style="
+                background: var(--card-bg-color);
+                border: 2px solid var(--primary-color);
+                border-radius: 10px;
+                padding: 2rem;
+                text-align: center;
+                max-width: 700px;
+                width: 90%;
+            ">
+                <h2 style="color: var(--primary-color);">Game Over</h2>
+                <p>Game Over! You have had a deficit for 20 consecutive turns.</p>
+                <div style="margin-top: 1rem;">
+                 <a href="index.html"><button id="game-over-ok" class="button">OK</button></a>
+                    
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', popupHtml);
+
+    // document.getElementById('game-over-ok').addEventListener('click', () => {
+    //     document.getElementById('game-end-popup').remove();
+    //     redirectToHomePage();  // Optionally redirect or reload the page
+    // });
+    const okButton = document.getElementById('game-over-ok');
+    if (okButton) {
+        console.log("OK button found");
+    } else {
+        console.log("OK button not found");
+    }
+
+    // Add event listener to the OK button
+    okButton.addEventListener('click', () => {
+        document.getElementById('game-end-popup').remove();
+        redirectToHomePage();
+    });
+
 }
