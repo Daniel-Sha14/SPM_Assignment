@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         buildingsGrid = gameState.buildingsGrid;
         points = parseInt(gameState.points);
         coins = parseInt(gameState.coins);
-        console.log(coins);
+   
         turnNumber = parseInt(gameState.turnNumber);
         gameMode = gameState.gameMode;
         const saveDate = gameState.saveDate
@@ -735,15 +735,15 @@ function updateProfitAndUpkeep() {
     }
 
     const netProfit = totalProfit - totalUpkeep;
-    console.log(netProfit);
+   
     updateScoreboard();
 
     if (netProfit < 0) {
         consecutiveDeficitTurns++;
-        console.log(`Consecutive deficit turns: ${consecutiveDeficitTurns}`);
+
     } else {
         consecutiveDeficitTurns = 0;
-        console.log('Deficit streak reset');
+
     }
 
     if (consecutiveDeficitTurns >= maxDeficitTurns) {

@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-            console.log(data);
+
             if (data.status === 'success') {
                 highScores = data.highScores; // Store the fetched high scores
                 displayHighScores(); // Display the high scores

@@ -266,6 +266,19 @@ body {
         width: 100%;
     }
 }
+
+#Title{
+    background-color: var(--accent-color);
+    color: var(--primary-bg);
+    padding: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    border-radius: var(--border-radius);
+    text-align: center;
+    font-weight: bold;
+    grid-column: span 2 ;
+    box-shadow: 0 0 10px var(--accent-color);
+}
 .music-control {
     position: fixed;
     top: 20px;

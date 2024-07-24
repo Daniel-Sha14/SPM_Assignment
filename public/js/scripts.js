@@ -394,7 +394,7 @@ function updateSelectedBuildingsUI() {
 }
 
 function highlightValidCells() {
-    console.log('s');
+
     const gridSquares = document.querySelectorAll('.grid-square');
 
     gridSquares.forEach(square => {
@@ -488,12 +488,12 @@ function demolishBuilding(square) {
         const row = Math.floor(index / gridSize);
         const col = index % gridSize;
         const unoccupiedSquares = Array.from(document.querySelectorAll('.grid-square')).filter(square => square.classList.contains('built'));
-        console.log(unoccupiedSquares.length);
+
         if (unoccupiedSquares.length == 1) {
-            console.log("hello");
+
             firstBuildingPlaced = false;
         }
-             // Remove building
+        // Remove building
         square.innerText = '';
         square.classList.remove('built', 'highlight-demolish');
         buildingsGrid[row][col] = null;
@@ -846,7 +846,7 @@ function countConnectedRoads(startRow, startCol) {
     while (queue.length > 0) {
         const { row, col } = queue.shift();
         roadCount++;
-        console.log(roadCount);
+  
 
         const surroundings = checkSurroundings(row, col);
         for (let i = 0; i < surroundings.length; i++) {
