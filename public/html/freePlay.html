@@ -6,6 +6,7 @@
     <title>Grid Game</title>
 
     <!-- Link to custom stylesheet -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/freePlaystyles.css">
 </head>
 <body>
@@ -73,6 +74,44 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="gameOverModal" tabindex="-1" role="dialog" aria-labelledby="gameOverModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header" style="color:black">
+              <h5 class="modal-title" id="gameOverModalLabel">Game Over</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body" style="color: black;">
+              <p>Game Over! You have had a deficit for 20 consecutive turns.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" id="continueBtn">Continue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Modal for game saved message -->
+      <div class="modal fade" id="gameOverModal2" tabindex="-1" role="dialog" aria-labelledby="gameOverModalLabel2" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header" style="color:black">
+              <h5 class="modal-title" id="gameOverModalLabel2">Game Over</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body" style="color: black;">
+              <p>Game Over! Returning to main menu</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" id="continueBtn">Continue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
     <!-- Link to custom JavaScript file -->
     <script src="../js/freePlayScript.js"></script>
     
