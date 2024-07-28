@@ -58,7 +58,7 @@ CREATE TABLE highscores (
     FOREIGN KEY (id) REFERENCES game_saves(id)
 );
 ```
-
+## To start server, use node app.js
 
 ### Music Credits
 
